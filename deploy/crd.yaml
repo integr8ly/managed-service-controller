@@ -11,3 +11,12 @@ spec:
     singular: managedservicenamespace
   scope: Namespaced
   version: v1alpha1
+  validation:
+    openAPIV3Schema:
+      properties:failed to decode json data with
+        spec:
+          properties:
+            managedNamespace:
+              type: string
+            consumerNamespaces:
+              type: array
