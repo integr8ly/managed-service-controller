@@ -2,7 +2,7 @@ package stub
 
 import (
 	"context"
-	"github.com/integr8ly/managed-services-operator/pkg/apis/integreatly/v1alpha1"
+	"github.com/integr8ly/managed-services-controller/pkg/apis/integreatly/v1alpha1"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/sirupsen/logrus"
 )
