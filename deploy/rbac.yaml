@@ -6,31 +6,15 @@ rules:
 - apiGroups:
   - integreatly.org
   resources:
-  - "*"
+  - "managedservicenamespaces"
   verbs:
   - "*"
 - apiGroups:
   - ""
   resources:
-  - pods
   - services
-  - endpoints
-  - persistentvolumeclaims
-  - events
-  - configmaps
-  - secrets
   verbs:
-  - "*"
-- apiGroups:
-  - apps
-  resources:
-  - deployments
-  - daemonsets
-  - replicasets
-  - statefulsets
-  verbs:
-  - "*"
-
+  - "create"
 ---
 
 kind: RoleBinding
@@ -40,7 +24,91 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: default
+  # needs to be set on deploy
+  namespace: managed-services-admin
 roleRef:
   kind: Role
   name: managed-services-controller
   apiGroup: rbac.authorization.k8s.io
+
+---
+
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: managed-services-controller-admin
+rules:
+- apiGroups:
+  - app.coreos.com
+  resources:
+  - "installplan-v1s"
+  verbs:
+  - "create"
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - "create"
+  - "delete"
+  - "get"
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  verbs:
+  - "create"
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - "get"
+  - "update"
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  generateName: managed-services-admin-
+roleRef:
+  kind: ClusterRole
+  name: managed-services-controller-admin
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: default
+  # needs to be set on deploy
+  namespace: managed-services-admin
+
+---
+# can we use groups here
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  generateName: managed-service-controller-enmasse-view-
+roleRef:
+  kind: ClusterRole
+  name: enmasse-integration-viewer
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: default
+  # needs to be set on deploy
+  namespace: managed-services-admin
+
+---
+  # can we use groups here
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  generateName: managed-service-controller-route-viewer-
+roleRef:
+  kind: ClusterRole
+  name: route-service-integrator
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: default
+  # needs to be set on deploy
+  namespace: managed-services-admin

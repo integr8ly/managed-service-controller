@@ -1,0 +1,5 @@
+#! package-manifest: ./manifests/managed-services-controller/msc.0.0.1.clusterserviceversion.yaml
+packageName: integration-controller
+channels:
+- name: poc
+  currentCSV: integration-controller-0.0.1

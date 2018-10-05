@@ -18,7 +18,6 @@ type ManagedServiceNamespace struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
 	Spec              ManagedServiceNamespaceSpec   `json:"spec"`
-	Status            ManagedServiceNamespaceStatus `json:"status,omitempty"`
 }
 
 type ManagedServiceNamespaceSpec struct {
@@ -26,7 +25,4 @@ type ManagedServiceNamespaceSpec struct {
 	metav1.ObjectMeta               `json:"metadata"`
 	ManagedNamespace string         `json:"managedNamespace"`
 	ConsumerNamespaces []string     `json:"consumerNamespaces"`
-}
-type ManagedServiceNamespaceStatus struct {
-	// Fill me
 }
