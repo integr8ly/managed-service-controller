@@ -1,0 +1,5 @@
+#! package-manifest: ./manifests/syndesis-operator/syndesis.0.0.1.clusterserviceversion.yaml
+packageName: syndesis-operator
+channels:
+- name: poc
+  currentCSV: syndesis-0.0.1
