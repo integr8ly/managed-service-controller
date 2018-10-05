@@ -1,8 +1,8 @@
 apiVersion: "integreatly.org/v1alpha1"
 kind: "ManagedServiceNamespace"
 metadata:
-  name: "example"
+  name: "managed-services-project"
 spec:
-  managedNamespace: "managed-services"
+  managedNamespace: "managed-services-project"
   consumerNamespaces:
-  - "user1"
+  - "myproject"
