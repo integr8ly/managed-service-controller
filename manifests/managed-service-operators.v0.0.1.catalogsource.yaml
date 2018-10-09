@@ -2,7 +2,7 @@ apiVersion: app.coreos.com/v1alpha1
 kind: CatalogSource-v1
 metadata:
   name: managed-service-operators.v0.0.1
-  namespace: operator-lifecycle-manager
+  namespace: kube-system
 spec:
   name: managed-service-operators.v0.0.1
   configMap: managed-service-operators.v0.0.1

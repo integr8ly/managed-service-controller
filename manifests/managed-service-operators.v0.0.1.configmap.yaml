@@ -2,7 +2,7 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: managed-service-operators.v0.0.1
-  namespace: operator-lifecycle-manager
+  namespace: kube-system
 
 data:
   customResourceDefinitions: |-
@@ -54,7 +54,7 @@ data:
       kind: ClusterServiceVersion-v1
       metadata:
         name: syndesis-0.0.1
-        namespace: operator-lifecycle-manager
+        namespace: kube-system
       spec:
         displayName: Syndesis Infrastructure Operator
         description: |
@@ -120,7 +120,7 @@ data:
       kind: ClusterServiceVersion-v1
       metadata:
         name: integration-controller-0.0.1
-        namespace: operator-lifecycle-manager
+        namespace: kube-system
       spec:
         displayName: Integration Controller
         description: |
