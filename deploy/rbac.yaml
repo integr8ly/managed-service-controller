@@ -51,6 +51,13 @@ rules:
   - rolebindings
   verbs:
   - "create"
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - "get"
+  - "update"
 ---
 
 kind: ClusterRoleBinding
@@ -91,7 +98,7 @@ metadata:
   generateName: managed-service-controller-route-viewer-
 roleRef:
   kind: ClusterRole
-  name: route-service-viewer
+  name: route-service-integrator
   apiGroup: rbac.authorization.k8s.io
 subjects:
 - kind: ServiceAccount

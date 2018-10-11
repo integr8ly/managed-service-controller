@@ -14,7 +14,6 @@ type installPlans struct {
 	Namespace string
 }
 
-// TODO: Why can't this be *InstallPlanInterface returned
 func NewInstallPlans(namespace string) InstallPlanInterface {
 	return &installPlans{
 		Namespace: namespace,

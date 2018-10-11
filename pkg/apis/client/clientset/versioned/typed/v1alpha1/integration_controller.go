@@ -1,11 +1,12 @@
 package v1alpha1
 
 import (
-	resources "github.com/integr8ly/managed-services-controller/pkg/apis/client/clientset/versioned/typed/resources/v1alpha1"
+	integreatly "github.com/integr8ly/managed-services-controller/pkg/apis/integreatly/v1alpha1"
 	olm "github.com/integr8ly/managed-services-controller/pkg/apis/olm/v1alpha1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"strings"
 )
 
 const (
@@ -15,43 +16,62 @@ const (
 	EnmasseClusterRoleName                         = "enmasse-integration-viewer"
 	RoutesAndServicesClusterRoleName               = "route-service-viewer"
 	IntegrationControllerName                      = "integration-controller"
+	IntegrationUserNamespacesEnvVarKey             = "USER_NAMESPACES"
 )
 
-type IntegrationControllerInterface interface {
-	Create() error
-}
-
-// integrationController implements IntegrationControllerInterface
 type integrationController struct {
 	Client    kubernetes.Interface
-	Namespace string
 }
 
-func NewIntegrationController(client kubernetes.Interface, namespace string) FuseOperatorInterface {
+func NewIntegrationControllerManager(client kubernetes.Interface) ManagedServiceManagerInterface {
 	return &integrationController{
 		Client: client,
-		Namespace: namespace,
 	}
 }
 
-func (ic *integrationController) Create() error {
-	err := ic.createEnmasseConfigMapRoleBinding();if err != nil {
+func (ic *integrationController) Create(msn *integreatly.ManagedServiceNamespace) error {
+	ns := msn.Spec.ManagedNamespace
+	err := ic.createEnmasseConfigMapRoleBinding(ns);if err != nil {
 		return err
 	}
 
-	err = ic.createRoutesAndServicesRoleBinding();if err != nil {
+	err = ic.createRoutesAndServicesRoleBinding(ns);if err != nil {
 		return err
 	}
 
-	err = ic.createIntegrationControllerInstallPlan();if err != nil {
+	// When creating a new Integration Controller there should be only one ConsumerNamespace.
+	// Still not sure about this.
+	cns := msn.Spec.ConsumerNamespaces[0]
+	err = ic.createIntegrationControllerInstallPlan(cns);if err != nil {
 		return err
 	}
-
 
 	return nil
 }
 
-func (ic *integrationController) createEnmasseConfigMapRoleBinding() error {
+func (ic *integrationController) Update(msn *integreatly.ManagedServiceNamespace) error {
+	d, err := ic.Client.Apps().Deployments(msn.Spec.ManagedNamespace).Get(IntegrationControllerName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	for _, c := range d.Spec.Template.Spec.Containers {
+		if c.Name == IntegrationControllerName {
+			for _, e := range c.Env {
+				if e.Name == IntegrationUserNamespacesEnvVarKey {
+					e.Value = strings.Join(msn.Spec.ConsumerNamespaces, ",")
+				}
+			}
+			_, err := ic.Client.Apps().Deployments(msn.Spec.ManagedNamespace).Update(d);if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (ic *integrationController) createEnmasseConfigMapRoleBinding(namespace string) error {
 	rb := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: IntegrationControllerName + "-enmasse-view-",
@@ -62,7 +82,7 @@ func (ic *integrationController) createEnmasseConfigMapRoleBinding() error {
 		},
 		RoleRef: clusterRole(EnmasseClusterRoleName),
 		Subjects: []rbacv1.Subject{
-			serviceAccountSubject(ic.Namespace),
+			serviceAccountSubject(namespace),
 		},
 	}
 
@@ -73,18 +93,18 @@ func (ic *integrationController) createEnmasseConfigMapRoleBinding() error {
 	return nil
 }
 
-func (ic *integrationController) createRoutesAndServicesRoleBinding() error {
+func (ic *integrationController) createRoutesAndServicesRoleBinding(namespace string) error {
 	rb :=  &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: IntegrationControllerName + "-route-viewer-",
+			GenerateName: IntegrationControllerName + "-route-services-",
 		},
 		RoleRef: clusterRole(RoutesAndServicesClusterRoleName),
 		Subjects: []rbacv1.Subject{
-			serviceAccountSubject(ic.Namespace),
+			serviceAccountSubject(namespace),
 		},
 	}
 
-	err := ic.createRoleBinding(ic.Namespace, rb);if err != nil {
+	err := ic.createRoleBinding(namespace, rb);if err != nil {
 		return err
 	}
 
@@ -106,7 +126,7 @@ func serviceAccountSubject(namespace string) rbacv1.Subject {
 	}
 }
 
-func (ic *integrationController) createIntegrationControllerInstallPlan() error {
+func (ic *integrationController) createIntegrationControllerInstallPlan(namespace string) error {
 	ip := &olm.InstallPlan{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: olm.SchemeGroupVersion.String(),
@@ -114,7 +134,7 @@ func (ic *integrationController) createIntegrationControllerInstallPlan() error 
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: IntegrationControllerInstallPlanName,
-			Namespace: ic.Namespace,
+			Namespace: namespace,
 		},
 		Spec: olm.InstallPlanSpec{
 			Approval: olm.ApprovalsAutomatic,
@@ -124,7 +144,7 @@ func (ic *integrationController) createIntegrationControllerInstallPlan() error 
 		},
 	}
 
-	ips := resources.NewInstallPlans(ic.Namespace)
+	ips := NewInstallPlans(namespace)
 	_, err := ips.Create(ip);if err != nil {
 		return err
 	}

@@ -64,6 +64,13 @@ data:
                 - "*"
                 verbs:
                 - "*"
+            - apiGroups:
+              - syndesis.io
+              resources:
+              - "syndesises"
+              verbs:
+              - "list"
+              - "get"
             deployments:
             - name: integration-controller
               spec:

@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
+	"github.com/operator-framework/operator-sdk/pkg/k8sclient"
 	"runtime"
 	"time"
 
-	handler "github.com/integr8ly/managed-services-controller/pkg/handler"
-	sdk "github.com/operator-framework/operator-sdk/pkg/sdk"
-	k8sutil "github.com/operator-framework/operator-sdk/pkg/util/k8sutil"
+	"github.com/integr8ly/managed-services-controller/pkg/handlers"
+	"github.com/operator-framework/operator-sdk/pkg/sdk"
+	"github.com/operator-framework/operator-sdk/pkg/util/k8sutil"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 
 	"github.com/sirupsen/logrus"
@@ -34,6 +35,6 @@ func main() {
 	resyncPeriod := time.Duration(5) * time.Second
 	logrus.Infof("Watching %s, %s, %s, %d", resource, kind, namespace, resyncPeriod)
 	sdk.Watch(resource, kind, namespace, resyncPeriod)
-	sdk.Handle(handler.NewHandler())
+	sdk.Handle(handlers.NewHandler(k8sclient.GetKubeClient()))
 	sdk.Run(context.TODO())
 }

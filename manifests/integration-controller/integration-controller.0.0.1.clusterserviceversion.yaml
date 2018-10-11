@@ -24,9 +24,16 @@ spec:
         - apiGroups:
           - integreatly.org
           resources:
-          - "*"
+          - "integrations"
           verbs:
           - "*"
+        - apiGroups:
+          - syndesis.io
+          resources:
+          - "syndesises"
+          verbs:
+          - "list"
+          - "get"
       deployments:
       - name: integration-controller
         spec:
