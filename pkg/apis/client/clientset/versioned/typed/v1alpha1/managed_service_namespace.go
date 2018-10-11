@@ -51,10 +51,10 @@ func (msns *managedServiceNamespaces) Create(msn *integreatly.ManagedServiceName
 
 func (msns *managedServiceNamespaces) Exists(msn *integreatly.ManagedServiceNamespace) bool {
 	_, err := msns.client.Core().Namespaces().Get(msn.Spec.ManagedNamespace, metav1.GetOptions{});if err != nil {
-		return true
+		return false
 	}
 
-	return false
+	return true
 }
 
 func (msns *managedServiceNamespaces) Delete(msn *integreatly.ManagedServiceNamespace) error {
