@@ -3,6 +3,7 @@ package v1alpha1
 import (
 	integreatly "github.com/integr8ly/managed-services-controller/pkg/apis/integreatly/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
@@ -36,12 +37,12 @@ func NewManagedServiceNamespaces(c kubernetes.Interface) ManagedServiceNamespace
 }
 
 func (msns *managedServiceNamespaces) Create(msn *integreatly.ManagedServiceNamespace) error {
-	err := createNamespace(msns.client, msn.Spec.ManagedNamespace);if err != nil {
+	if err := createNamespace(msns.client, msn.Spec.ManagedNamespace);err != nil {
 		return err
 	}
 
 	for _, ms := range msns.managedServiceManagers {
-		err = ms.Create(msn);if err != nil {
+		if err := ms.Create(msn);err != nil {
 			return err
 		}
 	}
@@ -50,7 +51,8 @@ func (msns *managedServiceNamespaces) Create(msn *integreatly.ManagedServiceName
 }
 
 func (msns *managedServiceNamespaces) Exists(msn *integreatly.ManagedServiceNamespace) bool {
-	_, err := msns.client.Core().Namespaces().Get(msn.Spec.ManagedNamespace, metav1.GetOptions{});if err != nil {
+	_, err := msns.client.Core().Namespaces().Get(msn.Spec.ManagedNamespace, metav1.GetOptions{})
+	if err != nil && !errors.IsAlreadyExists(err) {
 		return false
 	}
 
@@ -63,7 +65,7 @@ func (msns *managedServiceNamespaces) Delete(msn *integreatly.ManagedServiceName
 
 func (msns *managedServiceNamespaces) Update(msn *integreatly.ManagedServiceNamespace) error {
 	for _, ms := range msns.managedServiceManagers {
-		err := ms.Update(msn);if err != nil {
+		if err := ms.Update(msn);err != nil {
 			return err
 		}
 	}

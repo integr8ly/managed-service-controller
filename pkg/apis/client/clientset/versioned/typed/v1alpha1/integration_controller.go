@@ -31,18 +31,17 @@ func NewIntegrationControllerManager(client kubernetes.Interface) ManagedService
 
 func (ic *integrationController) Create(msn *integreatly.ManagedServiceNamespace) error {
 	ns := msn.Spec.ManagedNamespace
-	err := ic.createEnmasseConfigMapRoleBinding(ns);if err != nil {
-		return err
-	}
-
-	err = ic.createRoutesAndServicesRoleBinding(ns);if err != nil {
+	if err := ic.createEnmasseConfigMapRoleBinding(ns);err != nil {
 		return err
 	}
 
 	// When creating a new Integration Controller there should be only one ConsumerNamespace.
-	// Still not sure about this.
 	cns := msn.Spec.ConsumerNamespaces[0]
-	err = ic.createIntegrationControllerInstallPlan(cns);if err != nil {
+	if err := ic.createRoutesAndServicesRoleBinding(cns);err != nil {
+		return err
+	}
+
+	if err := ic.createIntegrationControllerInstallPlan(ns);err != nil {
 		return err
 	}
 
@@ -86,7 +85,7 @@ func (ic *integrationController) createEnmasseConfigMapRoleBinding(namespace str
 		},
 	}
 
-	err := ic.createRoleBinding(EnmasseNamespace, rb);if err != nil {
+	if err := ic.createRoleBinding(EnmasseNamespace, rb);err != nil {
 		return err
 	}
 

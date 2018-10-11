@@ -51,6 +51,7 @@ rules:
   verbs:
   - "create"
   - "delete"
+  - "get"
 - apiGroups:
   - rbac.authorization.k8s.io
   resources:

@@ -13,14 +13,14 @@ func handleManagedServiceNamespace(ctx context.Context, event sdk.Event, msn *in
 	ns := msn.Spec.ManagedNamespace
 	msns := clients.NewManagedServiceNamespaces(k8client)
 
-	if event.Deleted == true {
+	if event.Deleted {
 		logrus.Info("Deleting ManagedServiceNamespace: " + ns)
-		err := msns.Delete(msn);if err != nil {
+		if err := msns.Delete(msn);err != nil {
 			return err
 		}
 	} else {
-		if msns.Exists(msn) == true {
-			err := msns.Update(msn);if err != nil {
+		if msns.Exists(msn) {
+			if err := msns.Update(msn);err != nil {
 				return err
 			}
 			return nil
@@ -29,7 +29,7 @@ func handleManagedServiceNamespace(ctx context.Context, event sdk.Event, msn *in
 		logrus.Info("New ManagedServiceNamespace event")
 		logrus.Info("Creating ManagedServiceNamespace: " + ns)
 
-		err := msns.Create(msn);if err != nil {
+		if err := msns.Create(msn);err != nil {
 			return err
 		}
 
