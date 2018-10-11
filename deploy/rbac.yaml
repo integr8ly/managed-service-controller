@@ -9,6 +9,12 @@ rules:
   - "managedservicenamespaces"
   verbs:
   - "*"
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - "create"
 ---
 
 kind: RoleBinding
