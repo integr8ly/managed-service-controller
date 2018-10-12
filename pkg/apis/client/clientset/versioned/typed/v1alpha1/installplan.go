@@ -9,7 +9,6 @@ type InstallPlanInterface interface {
 	Create(*olm.InstallPlan) (*olm.InstallPlan, error)
 }
 
-// installPlans implements InstallPlanInterface
 type installPlans struct {
 	Namespace string
 }
