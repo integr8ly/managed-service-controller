@@ -37,7 +37,7 @@ func (ic *integrationController) Create(msn *integreatly.ManagedServiceNamespace
 
 	// When creating a new Integration Controller there should be only one ConsumerNamespace.
 	cns := msn.Spec.ConsumerNamespaces[0]
-	if err := ic.createRoutesAndServicesRoleBinding(cns);err != nil {
+	if err := ic.createRoutesAndServicesRoleBinding(cns, ns);err != nil {
 		return err
 	}
 
@@ -92,18 +92,18 @@ func (ic *integrationController) createEnmasseConfigMapRoleBinding(namespace str
 	return nil
 }
 
-func (ic *integrationController) createRoutesAndServicesRoleBinding(namespace string) error {
+func (ic *integrationController) createRoutesAndServicesRoleBinding(consumerNamespace, managedServiceNamespace string) error {
 	rb :=  &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: IntegrationControllerName + "-route-services-",
 		},
 		RoleRef: clusterRole(RoutesAndServicesClusterRoleName),
 		Subjects: []rbacv1.Subject{
-			serviceAccountSubject(namespace),
+			serviceAccountSubject(managedServiceNamespace),
 		},
 	}
 
-	err := ic.createRoleBinding(namespace, rb);if err != nil {
+	if err := ic.createRoleBinding(consumerNamespace, rb);err != nil {
 		return err
 	}
 
