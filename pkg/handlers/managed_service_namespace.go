@@ -27,8 +27,14 @@ func handleManagedServiceNamespace(ctx context.Context, event sdk.Event, msn *in
 		}
 
 		logrus.Info("New ManagedServiceNamespace event")
-		logrus.Info("Creating ManagedServiceNamespace: " + ns)
 
+		// When creating a new managed namespace there must be a ConsumerNamespace set.
+		if len(msn.Spec.ConsumerNamespaces) == 0 {
+			logrus.Info("ManagedServiceNamespace: " + msn.Name + " has no ConsumerNamespace set")
+			return nil
+		}
+
+		logrus.Info("Creating ManagedServiceNamespace: " + ns)
 		if err := msnsc.Create(msn);err != nil {
 			return err
 		}

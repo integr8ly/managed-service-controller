@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	"errors"
 	integreatly "github.com/integr8ly/managed-services-controller/pkg/apis/integreatly/v1alpha1"
 	olm "github.com/integr8ly/managed-services-controller/pkg/apis/olm/v1alpha1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -30,12 +31,15 @@ func NewIntegrationControllerManager(client kubernetes.Interface) ManagedService
 }
 
 func (icm *integrationControllerManager) Create(msn *integreatly.ManagedServiceNamespace) error {
+	if len(msn.Spec.ConsumerNamespaces) == 0 {
+		return errors.New("There must be a ConsumerNamespace set")
+	}
+
 	ns := msn.Spec.ManagedNamespace
 	if err := icm.createEnmasseConfigMapRoleBinding(ns);err != nil {
 		return err
 	}
 
-	// When creating a new Integration Controller there should be only one ConsumerNamespace.
 	cns := msn.Spec.ConsumerNamespaces[0]
 	if err := icm.createRoutesAndServicesRoleBinding(cns, ns);err != nil {
 		return err
