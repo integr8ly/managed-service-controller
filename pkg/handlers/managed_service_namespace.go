@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"context"
-	clients "github.com/integr8ly/managed-services-controller/pkg/apis/client/clientset/versioned/typed/v1alpha1"
+	clients "github.com/integr8ly/managed-services-controller/pkg/clients/v1alpha1"
 	integreatly "github.com/integr8ly/managed-services-controller/pkg/apis/integreatly/v1alpha1"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/sirupsen/logrus"
