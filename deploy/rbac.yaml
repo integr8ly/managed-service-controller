@@ -67,6 +67,49 @@ rules:
   - "update"
 ---
 
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: integration-update
+rules:
+- apiGroups:
+  - integreatly.org
+  resources:
+  - "integrations"
+  verbs:
+  - "update"
+
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: managed-services-integration-update-
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: integration-update
+subjects:
+- kind: ServiceAccount
+  name: default
+  # needs to be set on deploy
+  namespace: managed-services-admin
+
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: managed-services-view-
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+- kind: ServiceAccount
+  name: default
+  # needs to be set on deploy
+  namespace: managed-services-admin
+
+---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:

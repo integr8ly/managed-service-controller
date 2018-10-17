@@ -45,6 +45,10 @@ func (icm *integrationControllerManager) Create(msn *integreatly.ManagedServiceN
 		return err
 	}
 
+	if err := createUpdateIntegrationsRoleBinding(icm.k8sClient, msn);err != nil {
+		return err
+	}
+
 	if err := icm.createIntegrationControllerInstallPlan(ns);err != nil {
 		return err
 	}
@@ -108,6 +112,28 @@ func (icm *integrationControllerManager) createRoutesAndServicesRoleBinding(cons
 	}
 
 	if err := icm.createRoleBinding(consumerNamespace, rb);err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (icm *integrationControllerManager) createUpdateIntegrationsRoleBinding(c kubernetes.Interface, msn *integreatly.ManagedServiceNamespace) error {
+	rb :=  &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: msn.Name,
+			GenerateName: msn.Spec.UserID + "-update-integrations-" + msn.Name + "-",
+		},
+		RoleRef: clusterRole("integration-update"),
+		Subjects: []rbacv1.Subject{
+			{
+				Kind: "User",
+				Name: msn.Spec.UserID,
+			},
+		},
+	}
+
+	if err := icm.createRoleBinding(msn.Name, rb);err != nil {
 		return err
 	}
 
