@@ -35,7 +35,7 @@ func (icm *integrationControllerManager) Create(msn *integreatly.ManagedServiceN
 		return errors.New("There must be a ConsumerNamespace set")
 	}
 
-	ns := msn.Spec.ManagedNamespace
+	ns := msn.Name
 	if err := icm.createEnmasseConfigMapRoleBinding(ns);err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func (icm *integrationControllerManager) Create(msn *integreatly.ManagedServiceN
 }
 
 func (icm *integrationControllerManager) Update(msn *integreatly.ManagedServiceNamespace) error {
-	d, err := icm.k8sClient.Apps().Deployments(msn.Spec.ManagedNamespace).Get(IntegrationControllerName, metav1.GetOptions{})
+	d, err := icm.k8sClient.Apps().Deployments(msn.Name).Get(IntegrationControllerName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func (icm *integrationControllerManager) Update(msn *integreatly.ManagedServiceN
 					e.Value = strings.Join(msn.Spec.ConsumerNamespaces, ",")
 				}
 			}
-			_, err := icm.k8sClient.Apps().Deployments(msn.Spec.ManagedNamespace).Update(d);if err != nil {
+			_, err := icm.k8sClient.Apps().Deployments(msn.Name).Update(d);if err != nil {
 				return err
 			}
 		}

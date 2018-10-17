@@ -10,7 +10,7 @@ import (
 )
 
 func handleManagedServiceNamespace(ctx context.Context, event sdk.Event, msn *integreatly.ManagedServiceNamespace, k8client kubernetes.Interface) error {
-	ns := msn.Spec.ManagedNamespace
+	ns := msn.Name
 	msnsc := clients.NewManagedServiceNamespaces(k8client)
 
 	if event.Deleted {

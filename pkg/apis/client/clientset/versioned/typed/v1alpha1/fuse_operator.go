@@ -18,7 +18,7 @@ func NewFuseOperatorManager() ManagedServiceManagerInterface {
 }
 
 func (fom *fuseOperatorManager) Create(msn *integreatly.ManagedServiceNamespace) error {
-	ns := msn.Spec.ManagedNamespace
+	ns := msn.Name
 	ip := &olm.InstallPlan{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: olm.SchemeGroupVersion.String(),
