@@ -13,7 +13,13 @@ spec:
   version: v1alpha1
   validation:
     openAPIV3Schema:
+      properties:
         spec:
+          type: object
+          description: Spec for a ManagedServiceNamespace
+          required:
+          - consumerNamespaces
           properties:
             consumerNamespaces:
               type: array
+              description: Names of the namespaces that will be allowed use the services created in ManagedServiceNamespace.
