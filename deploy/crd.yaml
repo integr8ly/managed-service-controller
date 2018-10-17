@@ -15,7 +15,5 @@ spec:
     openAPIV3Schema:
         spec:
           properties:
-            managedNamespace:
-              type: string
             consumerNamespaces:
               type: array

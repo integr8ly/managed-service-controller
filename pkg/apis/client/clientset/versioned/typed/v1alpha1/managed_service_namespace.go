@@ -36,7 +36,7 @@ func NewManagedServiceNamespaces(c kubernetes.Interface) ManagedServiceNamespace
 }
 
 func (msnsc *managedServiceNamespacesClient) Create(msn *integreatly.ManagedServiceNamespace) error {
-	if err := createNamespace(msnsc.k8sClient, msn.Spec.ManagedNamespace);err != nil {
+	if err := createNamespace(msnsc.k8sClient, msn.Name);err != nil {
 		return err
 	}
 
@@ -50,7 +50,7 @@ func (msnsc *managedServiceNamespacesClient) Create(msn *integreatly.ManagedServ
 }
 
 func (msnsc *managedServiceNamespacesClient) Exists(msn *integreatly.ManagedServiceNamespace) bool {
-	_, err := msnsc.k8sClient.Core().Namespaces().Get(msn.Spec.ManagedNamespace, metav1.GetOptions{})
+	_, err := msnsc.k8sClient.Core().Namespaces().Get(msn.Name, metav1.GetOptions{})
 	if err != nil && errors.IsAlreadyExists(err) {
 		return true
 	}
@@ -59,7 +59,7 @@ func (msnsc *managedServiceNamespacesClient) Exists(msn *integreatly.ManagedServ
 }
 
 func (msnsc *managedServiceNamespacesClient) Delete(msn *integreatly.ManagedServiceNamespace) error {
-	return msnsc.k8sClient.Core().Namespaces().Delete(msn.Spec.ManagedNamespace, &metav1.DeleteOptions{})
+	return msnsc.k8sClient.Core().Namespaces().Delete(msn.Name, &metav1.DeleteOptions{})
 }
 
 func (msnsc *managedServiceNamespacesClient) Update(msn *integreatly.ManagedServiceNamespace) error {

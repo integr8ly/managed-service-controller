@@ -3,6 +3,5 @@ kind: "ManagedServiceNamespace"
 metadata:
   name: "managed-services-project"
 spec:
-  managedNamespace: "managed-services-project"
   consumerNamespaces:
   - "myproject"
