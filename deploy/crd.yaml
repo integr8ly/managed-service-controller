@@ -19,7 +19,11 @@ spec:
           description: Spec for a ManagedServiceNamespace
           required:
           - consumerNamespaces
+          - userId
           properties:
+            userId:
+              type: string
+              description: This User will be granted view access to the ManagedServiceNamespace and update access to the Integration resource.
             consumerNamespaces:
               type: array
               description: Names of the namespaces that will be allowed use the services created in ManagedServiceNamespace.

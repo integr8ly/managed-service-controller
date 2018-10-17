@@ -5,7 +5,13 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/client-go/kubernetes"
+)
+
+const (
+	ViewClusterRole = "view"
+	ClusterRoleType = "ClusterRole"
 )
 
 type ManagedServiceNamespaceInterface interface {
@@ -37,6 +43,10 @@ func NewManagedServiceNamespaces(c kubernetes.Interface) ManagedServiceNamespace
 
 func (msnsc *managedServiceNamespacesClient) Create(msn *integreatly.ManagedServiceNamespace) error {
 	if err := createNamespace(msnsc.k8sClient, msn.Name);err != nil {
+		return err
+	}
+
+	if err := createViewRoleBindingForUser(msnsc.k8sClient, msn);err != nil {
 		return err
 	}
 
@@ -79,4 +89,28 @@ func createNamespace(c kubernetes.Interface, namespace string) error{
 		},
 	})
 	return err
+}
+
+func createViewRoleBindingForUser(c kubernetes.Interface, msn *integreatly.ManagedServiceNamespace) error {
+	rb :=  &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: msn.Name,
+			GenerateName: msn.Spec.UserID + "-view-" + msn.Name + "-",
+		},
+		RoleRef: rbacv1.RoleRef{
+			Kind: ClusterRoleType,
+			Name: ViewClusterRole,
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind: "User",
+				Name: msn.Spec.UserID,
+			},
+		},
+	}
+	if _, err := c.Rbac().RoleBindings(msn.Name).Create(rb);err != nil {
+		return err
+	}
+
+	return nil
 }

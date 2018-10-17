@@ -4,6 +4,7 @@ metadata:
   name: "managed-services-project"
 spec:
   autoEnabledServiceIntegrations: "true"
+  userId: "developer"
   consumerNamespaces:
   - "consumer1"
   - "consumer2"
