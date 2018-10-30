@@ -6,4 +6,5 @@ spec:
   managedNamespace: "managed-services"
   autoEnabledServiceIntegrations: "true"
   consumerNamespaces:
-  - "user1"
+  - "consumer1"
+  - "consumer2"
