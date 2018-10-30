@@ -4,5 +4,6 @@ metadata:
   name: "example"
 spec:
   managedNamespace: "managed-services"
+  autoEnabledServiceIntegrations: "true"
   consumerNamespaces:
   - "user1"
