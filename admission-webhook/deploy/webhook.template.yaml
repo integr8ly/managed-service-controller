@@ -1,0 +1,125 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: managed-service-namespaces-webhook
+objects:
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: managed-service-namespaces-webhook
+  type: Opaque
+  data:
+    tls.crt: ${SERVER_CERT}
+    tls.key: ${SERVER_KEY}
+
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: managed-service-namespaces-webhook
+  spec:
+    replicas: 1
+    strategy:
+      type: "RollingUpdate"
+    selector:
+      matchLabels:
+        app:  managed-service-namespaces-webhook
+    template:
+      metadata:
+        labels:
+          app: "managed-service-namespaces-webhook"
+          managed-service-namespaces-webhook: "true"
+      spec:
+        terminationGracePeriodSeconds: 0
+        containers:
+        - name: managed-service-namespaces-webhook
+          volumeMounts:
+          - name: "webhook-certs"
+            readOnly: true
+            mountPath: "/webhook.local.config/certificates"
+          args:
+          - "--tls-cert-file=/webhook.local.config/certificates/tls.crt"
+          - "--tls-private-key-file=/webhook.local.config/certificates/tls.key"
+          - "--alsologtostderr"
+          - "-v=4"
+          - "2>&1"
+          image: sedroche/managed-service-namespaces-webhook:0.0.1
+          imagePullPolicy: Always
+        volumes:
+        - name: "webhook-certs"
+          secret:
+            secretName: "managed-service-namespaces-webhook"
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: managed-service-namespaces-webhook
+    namespace: ${NAMESPACE}
+  spec:
+    selector:
+      managed-service-namespaces-webhook: "true"
+      app: managed-service-namespaces-webhook
+    ports:
+    - port: 443
+      protocol: TCP
+      targetPort: 8443
+
+- apiVersion: admissionregistration.k8s.io/v1beta1
+  kind: ValidatingWebhookConfiguration
+  metadata:
+    name: managed-service-namespaces-webhook-config
+    labels:
+      app: managed-service-namespaces-webhook
+  webhooks:
+  - name: webhook.integreatly.org
+    clientConfig:
+      service:
+        name: managed-service-namespaces-webhook
+        namespace: ${NAMESPACE}
+        path: "/validate/msn"
+      caBundle: ${CA_BUNDLE}
+    rules:
+    - operations: [ "CREATE", "UPDATE" ]
+      apiGroups: [ "integreatly.org" ]
+      apiVersions: [ "v1alpha1" ]
+      resources: [ "managedservicenamespaces" ]
+
+- apiVersion: rbac.authorization.k8s.io/v1beta1
+  kind: ClusterRole
+  metadata:
+    name: managed-services-namespace-webhook
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - namespaces
+    verbs:
+    - "list"
+
+- apiVersion: rbac.authorization.k8s.io/v1beta1
+  kind: ClusterRoleBinding
+  metadata:
+    generateName: managed-services-namespace-webhook-
+    labels:
+      app: managed-service-namespaces-webhook
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: managed-services-namespace-webhook
+  subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: ${NAMESPACE}
+
+parameters:
+- name: NAMESPACE
+  description: Namespace of the project that is being deployed to
+  required: true
+- name: SERVER_KEY
+  description: Base64 encoded server private key
+  required: true
+- name: SERVER_CERT
+  description: Base64 encoded server cert
+  required: true
+- name: CA_BUNDLE
+  description: Cert bundle of the CA that signed the SERVER_CERT
+  required: true
