@@ -3,7 +3,6 @@ package v1alpha1
 import (
 	"errors"
 	integreatly "github.com/integr8ly/managed-services-controller/pkg/apis/integreatly/v1alpha1"
-	olm "github.com/integr8ly/managed-services-controller/pkg/apis/olm/v1alpha1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -11,8 +10,6 @@ import (
 )
 
 const (
-	IntegrationControllerInstallPlanName           = "integration-controller.0.0.1-install"
-	IntegrationControllerClusterServiceVersionName = "integration-controller-0.0.1"
 	EnmasseNamespace                               = "enmasse"
 	EnmasseClusterRoleName                         = "enmasse-integration-viewer"
 	RoutesAndServicesClusterRoleName               = "route-service-viewer"
@@ -45,11 +42,11 @@ func (icm *integrationControllerManager) Create(msn *integreatly.ManagedServiceN
 		return err
 	}
 
-	if err := createUpdateIntegrationsRoleBinding(icm.k8sClient, msn);err != nil {
+	if err := icm.createUpdateIntegrationsRoleBinding(icm.k8sClient, msn);err != nil {
 		return err
 	}
 
-	if err := icm.createIntegrationControllerInstallPlan(ns);err != nil {
+	if err := icm.createIntegrationController(ns);err != nil {
 		return err
 	}
 
@@ -140,29 +137,7 @@ func (icm *integrationControllerManager) createUpdateIntegrationsRoleBinding(c k
 	return nil
 }
 
-func (icm *integrationControllerManager) createIntegrationControllerInstallPlan(namespace string) error {
-	ip := &olm.InstallPlan{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: olm.SchemeGroupVersion.String(),
-			Kind: olm.InstallPlanKind,
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: IntegrationControllerInstallPlanName,
-			Namespace: namespace,
-		},
-		Spec: olm.InstallPlanSpec{
-			Approval: olm.ApprovalsAutomatic,
-			ClusterServiceVersionNames: []string{
-				IntegrationControllerClusterServiceVersionName,
-			},
-		},
-	}
-
-	ips := NewInstallPlans(namespace)
-	_, err := ips.Create(ip);if err != nil {
-		return err
-	}
-
+func (icm *integrationControllerManager) createIntegrationController(namespace string) error {
 	return nil
 }
 

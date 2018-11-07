@@ -1,9 +1,0 @@
-apiVersion: app.coreos.com/v1alpha1
-kind: InstallPlan-v1
-metadata:
-  namespace: managed-services-project
-  name: integration-controller.0.0.1-install
-spec:
-  clusterServiceVersionNames:
-  - integration-controller-0.0.1
-  approval: Automatic

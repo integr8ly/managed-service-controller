@@ -39,12 +39,6 @@ metadata:
   name: managed-services-controller-admin
 rules:
 - apiGroups:
-  - app.coreos.com
-  resources:
-  - "installplan-v1s"
-  verbs:
-  - "create"
-- apiGroups:
   - ""
   resources:
   - namespaces

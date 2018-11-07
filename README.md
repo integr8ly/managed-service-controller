@@ -12,17 +12,6 @@ POC
 
 ## Deploy to a cluster
 
-#### Operator Lifecycle Manager
-The managed-service-controller uses the [Operator Lifecycle Manager](https://github.com/operator-framework/operator-lifecycle-manager) to deploy the managed services so install OLM.
-
-OLM Install guides [here](https://github.com/operator-framework/operator-lifecycle-manager/blob/master/Documentation/install/install.md).
-
-#### Install Managed Service Controller OLM Catalog
-```bash
-$ oc create -f manifests/managed-service-operators.catalogsource.yaml -n <namespace_olm_is_installed>
-$ oc create -f manifests/managed-service-operators.configmap.yaml -n <namespace_olm_is_installed>
-```
-
 #### Add CRD
 ```bash
 $ oc create -f deploy/crd.yaml
