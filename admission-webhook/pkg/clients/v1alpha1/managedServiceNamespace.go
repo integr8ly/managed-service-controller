@@ -6,22 +6,12 @@ import (
 	utils "github.com/integr8ly/managed-services-controller/admission-webhook/pkg/utils/v1alpha1"
 	"github.com/integr8ly/managed-services-controller/pkg/apis/integreatly/v1alpha1"
 	"k8s.io/api/admission/v1beta1"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
 type ManagedServiceNamespaceClient struct {
 	K8sClient kubernetes.Interface
-}
-
-func contains(s []corev1.Namespace, name string) bool {
-	for _, a := range s {
-		if a.Name == name {
-			return true
-		}
-	}
-	return false
 }
 
 func (msnc *ManagedServiceNamespaceClient) Validate(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
@@ -42,12 +32,11 @@ func (msnc *ManagedServiceNamespaceClient) Validate(ar v1beta1.AdmissionReview) 
 	reviewResponse := v1beta1.AdmissionResponse{
 		Result: &metav1.Status{},
 	}
-	for _, v := range msn.Spec.ConsumerNamespaces {
-		if !contains(namespaces.Items, v) {
-			reviewResponse.Allowed = false
-			reviewResponse.Result.Message = msn.Name + " is not valid. The namespace " + v + " does not exist."
-			return &reviewResponse
-		}
+	var invalidNamespace string
+
+	reviewResponse.Allowed, invalidNamespace = msn.Validate(namespaces)
+	if !reviewResponse.Allowed {
+		reviewResponse.Result.Message = msn.Name + " is not valid. The namespace " + invalidNamespace + " does not exist."
 	}
 
 	glog.V(2).Info("ManagedServiceNamespace " + msn.Name + " valid.")
