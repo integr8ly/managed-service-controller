@@ -1,0 +1,16 @@
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: managed-service-namespaces-webhook-config
+  labels:
+    app: managed-service-namespaces-webhook
+webhooks:
+- name: webhook.integreatly.org
+  clientConfig:
+    url: "https://<DOMAIN>/validate/msn"
+    caBundle: "<CA_BUNDLE>"
+  rules:
+  - operations: [ "CREATE", "UPDATE" ]
+    apiGroups: [ "integreatly.org" ]
+    apiVersions: [ "v1alpha1" ]
+    resources: [ "managedservicenamespaces" ]
