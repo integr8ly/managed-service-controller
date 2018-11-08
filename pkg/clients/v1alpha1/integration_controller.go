@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	EnmasseNamespace                               = "enmasse"
-	EnmasseClusterRoleName                         = "enmasse-integration-viewer"
-	RoutesAndServicesClusterRoleName               = "route-service-viewer"
-	IntegrationControllerName                      = "integration-controller"
-	IntegrationUserNamespacesEnvVarKey             = "USER_NAMESPACES"
+	EnmasseNamespace                   = "enmasse"
+	EnmasseClusterRoleName             = "enmasse-integration-viewer"
+	RoutesAndServicesClusterRoleName   = "route-service-viewer"
+	IntegrationControllerName          = "integration-controller"
+	IntegrationUserNamespacesEnvVarKey = "USER_NAMESPACES"
 )
 
 type integrationControllerManager struct {
@@ -33,20 +33,20 @@ func (icm *integrationControllerManager) Create(msn *integreatly.ManagedServiceN
 	}
 
 	ns := msn.Name
-	if err := icm.createEnmasseConfigMapRoleBinding(ns);err != nil {
+	if err := icm.createEnmasseConfigMapRoleBinding(ns); err != nil {
 		return err
 	}
 
 	cns := msn.Spec.ConsumerNamespaces[0]
-	if err := icm.createRoutesAndServicesRoleBinding(cns, ns);err != nil {
+	if err := icm.createRoutesAndServicesRoleBinding(cns, ns); err != nil {
 		return err
 	}
 
-	if err := icm.createUpdateIntegrationsRoleBinding(icm.k8sClient, msn);err != nil {
+	if err := icm.createUpdateIntegrationsRoleBinding(icm.k8sClient, msn); err != nil {
 		return err
 	}
 
-	if err := icm.createIntegrationController(ns);err != nil {
+	if err := icm.createIntegrationController(ns); err != nil {
 		return err
 	}
 
@@ -66,7 +66,8 @@ func (icm *integrationControllerManager) Update(msn *integreatly.ManagedServiceN
 					e.Value = strings.Join(msn.Spec.ConsumerNamespaces, ",")
 				}
 			}
-			_, err := icm.k8sClient.Apps().Deployments(msn.Name).Update(d);if err != nil {
+			_, err := icm.k8sClient.Apps().Deployments(msn.Name).Update(d)
+			if err != nil {
 				return err
 			}
 		}
@@ -79,7 +80,7 @@ func (icm *integrationControllerManager) createEnmasseConfigMapRoleBinding(names
 	rb := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: IntegrationControllerName + "-enmasse-view-",
-			Namespace: EnmasseNamespace,
+			Namespace:    EnmasseNamespace,
 			Labels: map[string]string{
 				"for": IntegrationControllerName,
 			},
@@ -90,7 +91,7 @@ func (icm *integrationControllerManager) createEnmasseConfigMapRoleBinding(names
 		},
 	}
 
-	if err := icm.createRoleBinding(EnmasseNamespace, rb);err != nil {
+	if err := icm.createRoleBinding(EnmasseNamespace, rb); err != nil {
 		return err
 	}
 
@@ -98,7 +99,7 @@ func (icm *integrationControllerManager) createEnmasseConfigMapRoleBinding(names
 }
 
 func (icm *integrationControllerManager) createRoutesAndServicesRoleBinding(consumerNamespace, managedServiceNamespace string) error {
-	rb :=  &rbacv1.RoleBinding{
+	rb := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: IntegrationControllerName + "-route-services-",
 		},
@@ -108,7 +109,7 @@ func (icm *integrationControllerManager) createRoutesAndServicesRoleBinding(cons
 		},
 	}
 
-	if err := icm.createRoleBinding(consumerNamespace, rb);err != nil {
+	if err := icm.createRoleBinding(consumerNamespace, rb); err != nil {
 		return err
 	}
 
@@ -116,9 +117,9 @@ func (icm *integrationControllerManager) createRoutesAndServicesRoleBinding(cons
 }
 
 func (icm *integrationControllerManager) createUpdateIntegrationsRoleBinding(c kubernetes.Interface, msn *integreatly.ManagedServiceNamespace) error {
-	rb :=  &rbacv1.RoleBinding{
+	rb := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: msn.Name,
+			Namespace:    msn.Name,
 			GenerateName: msn.Spec.UserID + "-update-integrations-" + msn.Name + "-",
 		},
 		RoleRef: clusterRole("integration-update"),
@@ -130,7 +131,7 @@ func (icm *integrationControllerManager) createUpdateIntegrationsRoleBinding(c k
 		},
 	}
 
-	if err := icm.createRoleBinding(msn.Name, rb);err != nil {
+	if err := icm.createRoleBinding(msn.Name, rb); err != nil {
 		return err
 	}
 
@@ -142,7 +143,8 @@ func (icm *integrationControllerManager) createIntegrationController(namespace s
 }
 
 func (icm *integrationControllerManager) createRoleBinding(namespace string, rb *rbacv1.RoleBinding) error {
-	_, err := icm.k8sClient.Rbac().RoleBindings(namespace).Create(rb);if err != nil {
+	_, err := icm.k8sClient.Rbac().RoleBindings(namespace).Create(rb)
+	if err != nil {
 		return err
 	}
 
@@ -158,8 +160,8 @@ func clusterRole(roleName string) rbacv1.RoleRef {
 
 func serviceAccountSubject(namespace string) rbacv1.Subject {
 	return rbacv1.Subject{
-		Kind: "ServiceAccount",
-		Name: IntegrationControllerName,
+		Kind:      "ServiceAccount",
+		Name:      IntegrationControllerName,
 		Namespace: namespace,
 	}
 }

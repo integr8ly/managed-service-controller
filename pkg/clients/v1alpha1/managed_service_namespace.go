@@ -2,24 +2,19 @@ package v1alpha1
 
 import (
 	integreatly "github.com/integr8ly/managed-services-controller/pkg/apis/integreatly/v1alpha1"
+	"github.com/operator-framework/operator-sdk/pkg/k8sclient"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 const (
 	ViewClusterRole = "view"
 	ClusterRoleType = "ClusterRole"
 )
-
-type ManagedServiceNamespaceInterface interface {
-	Create(*integreatly.ManagedServiceNamespace) error
-	Exists(msn *integreatly.ManagedServiceNamespace) bool
-	Delete(msn *integreatly.ManagedServiceNamespace) error
-	Update(msn *integreatly.ManagedServiceNamespace) error
-}
 
 type managedServiceNamespacesClient struct {
 	k8sClient              kubernetes.Interface
@@ -31,27 +26,29 @@ type ManagedServiceManagerInterface interface {
 	Update(*integreatly.ManagedServiceNamespace) error
 }
 
-func NewManagedServiceNamespaces(c kubernetes.Interface) ManagedServiceNamespaceInterface {
+func NewManagedServiceNamespaces(cfg *rest.Config) ManagedServiceNamespaceInterface {
+	k8sClient := k8sclient.GetKubeClient()
+	osClient := NewClientFactory(cfg)
 	return &managedServiceNamespacesClient{
-		k8sClient: c,
+		k8sClient: k8sClient,
 		managedServiceManagers: []ManagedServiceManagerInterface{
-			NewFuseOperatorManager(),
-			NewIntegrationControllerManager(c),
-        },
+			NewFuseOperatorManager(k8sClient, osClient),
+			NewIntegrationControllerManager(k8sClient),
+		},
 	}
 }
 
 func (msnsc *managedServiceNamespacesClient) Create(msn *integreatly.ManagedServiceNamespace) error {
-	if err := createNamespace(msnsc.k8sClient, msn.Name);err != nil {
+	if err := createNamespace(msnsc.k8sClient, msn.Name); err != nil {
 		return err
 	}
 
-	if err := createViewRoleBindingForUser(msnsc.k8sClient, msn);err != nil {
+	if err := createViewRoleBindingForUser(msnsc.k8sClient, msn); err != nil {
 		return err
 	}
 
 	for _, ms := range msnsc.managedServiceManagers {
-		if err := ms.Create(msn);err != nil {
+		if err := ms.Create(msn); err != nil {
 			return err
 		}
 	}
@@ -74,7 +71,7 @@ func (msnsc *managedServiceNamespacesClient) Delete(msn *integreatly.ManagedServ
 
 func (msnsc *managedServiceNamespacesClient) Update(msn *integreatly.ManagedServiceNamespace) error {
 	for _, ms := range msnsc.managedServiceManagers {
-		if err := ms.Update(msn);err != nil {
+		if err := ms.Update(msn); err != nil {
 			return err
 		}
 	}
@@ -82,7 +79,7 @@ func (msnsc *managedServiceNamespacesClient) Update(msn *integreatly.ManagedServ
 	return nil
 }
 
-func createNamespace(c kubernetes.Interface, namespace string) error{
+func createNamespace(c kubernetes.Interface, namespace string) error {
 	_, err := c.Core().Namespaces().Create(&corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: namespace,
@@ -92,9 +89,9 @@ func createNamespace(c kubernetes.Interface, namespace string) error{
 }
 
 func createViewRoleBindingForUser(c kubernetes.Interface, msn *integreatly.ManagedServiceNamespace) error {
-	rb :=  &rbacv1.RoleBinding{
+	rb := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: msn.Name,
+			Namespace:    msn.Name,
 			GenerateName: msn.Spec.UserID + "-view-" + msn.Name + "-",
 		},
 		RoleRef: rbacv1.RoleRef{
@@ -108,7 +105,7 @@ func createViewRoleBindingForUser(c kubernetes.Interface, msn *integreatly.Manag
 			},
 		},
 	}
-	if _, err := c.Rbac().RoleBindings(msn.Name).Create(rb);err != nil {
+	if _, err := c.Rbac().RoleBindings(msn.Name).Create(rb); err != nil {
 		return err
 	}
 
