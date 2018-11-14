@@ -10,12 +10,12 @@ import (
 )
 
 type ManagedServiceNamespaceHandler struct {
-	msnClient clients.ManagedServiceNamespaceInterface
+	client clients.ManagedServiceNamespaceInterface
 }
 
 func NewManagedServiceNamespaceHandler(cfg *rest.Config) *ManagedServiceNamespaceHandler {
 	return &ManagedServiceNamespaceHandler{
-		msnClient: clients.NewManagedServiceNamespaceClient(cfg),
+		client: clients.NewManagedServiceNamespaceClient(cfg),
 	}
 }
 
@@ -28,17 +28,18 @@ func (msnh *ManagedServiceNamespaceHandler) Handle(
 	ns := msn.Name
 	if event.Deleted {
 		logrus.Info("Deleting ManagedServiceNamespace: " + ns)
-		if err := msnh.msnClient.Delete(msn); err != nil {
+		// TODO: Change these to msnh.Delete(msn)
+		if err := msnh.client.Delete(msn); err != nil {
 			return err
 		}
 	} else {
-		if err := msnh.msnClient.Validate(msn); err != nil {
+		if err := msnh.client.Validate(msn); err != nil {
 			logrus.Info("ManagedServiceNamespace resource is invalid: " + err.Error())
 			return nil
 		}
 
-		if msnh.msnClient.Exists(msn) {
-			if err := msnh.msnClient.Update(msn); err != nil {
+		if msnh.client.Exists(msn) {
+			if err := msnh.client.Update(msn); err != nil {
 				return err
 			}
 			return nil
@@ -47,7 +48,7 @@ func (msnh *ManagedServiceNamespaceHandler) Handle(
 		logrus.Info("New ManagedServiceNamespace event")
 
 		logrus.Info("Creating ManagedServiceNamespace: " + ns)
-		if err := msnh.msnClient.Create(msn); err != nil {
+		if err := msnh.client.Create(msn); err != nil {
 			return err
 		}
 

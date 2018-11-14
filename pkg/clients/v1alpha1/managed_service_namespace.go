@@ -20,6 +20,7 @@ const (
 type managedServiceNamespacesClient struct {
 	k8sClient              kubernetes.Interface
 	managedServiceManagers []ManagedServiceManagerInterface
+	// TODO: Remove
 	namespaces             <-chan watch.Event
 }
 
