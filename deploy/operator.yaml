@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: managed-services-controller
+  name: managed-service-controller
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: managed-services-controller
+      name: managed-service-controller
   template:
     metadata:
       labels:
-        name: managed-services-controller
+        name: managed-service-controller
     spec:
       containers:
-        - name: managed-services-controller
-          image: sedroche/managed-services-controller:0.0.1
+        - name: managed-service-controller
+          image: sedroche/managed-service-controller:1.0.0
           ports:
           - containerPort: 60000
             name: metrics
           command:
-          - managed-services-controller
+          - managed-service-controller
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE
@@ -27,4 +27,4 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: OPERATOR_NAME
-              value: "managed-services-controller"
+              value: "managed-service-controller"

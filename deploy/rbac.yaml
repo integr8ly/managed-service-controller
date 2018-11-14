@@ -1,7 +1,8 @@
+# managed-service-controller namespace permissions start
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
-  name: managed-services-controller
+  name: managed-service-controller
 rules:
 - apiGroups:
   - integreatly.org
@@ -20,23 +21,166 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
-  name: default-account-managed-services-controller
+  name: default-account-managed-service-controller
 subjects:
 - kind: ServiceAccount
   name: default
   # needs to be set on deploy
-  namespace: managed-services-admin
+  namespace: managed-service-admin
 roleRef:
   kind: Role
-  name: managed-services-controller
+  name: managed-service-controller
   apiGroup: rbac.authorization.k8s.io
 
+---
+# managed-service-controller namespace permissions end
+
+# Fuse permissions start
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: managed-service-controller-fuse-perms
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
+  verbs:
+  - "create"
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  - rolebindings
+  verbs: ["create"]
+- apiGroups:
+  - apps.openshift.io
+  resources:
+  - deploymentconfigs
+  verbs: ["create", "get", "update"]
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: default-account-managed-service-controller-fuse-perms
+subjects:
+- kind: ServiceAccount
+  name: default
+  # needs to be set on deploy
+  namespace: managed-service-admin
+roleRef:
+  kind: ClusterRole
+  name: managed-service-controller-fuse-perms
+  apiGroup: rbac.authorization.k8s.io
 ---
 
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
-  name: managed-services-controller-admin
+  name: syndesis-operator
+  labels:
+    app: syndesis
+    syndesis.io/app: syndesis
+    syndesis.io/type: operator
+    syndesis.io/component: syndesis-operator
+rules:
+- apiGroups:
+  - syndesis.io
+  resources:
+  - syndesises
+  - syndesises/finalizers
+  verbs: [ get, list, create, update, delete, deletecollection, watch ]
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - services
+  - endpoints
+  - persistentvolumeclaims
+  - configmaps
+  - secrets
+  - serviceaccounts
+  verbs: [ get, list, create, update, delete, deletecollection, watch]
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs: [ get, list ]
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  verbs: [ get, list, create, update, delete, deletecollection, watch]
+- apiGroups:
+  - template.openshift.io
+  resources:
+  - processedtemplates
+  verbs: [ get, list, create, update, delete, deletecollection, watch]
+- apiGroups:
+  - image.openshift.io
+  resources:
+  - imagestreams
+  verbs: [ get, list, create, update, delete, deletecollection, watch]
+- apiGroups:
+  - apps.openshift.io
+  resources:
+  - deploymentconfigs
+  verbs: [ get, list, create, update, delete, deletecollection, watch]
+- apiGroups:
+  - build.openshift.io
+  resources:
+  - buildconfigs
+  verbs: [ get, list, create, update, delete, deletecollection, watch]
+- apiGroups:
+  - authorization.openshift.io
+  resources:
+  - rolebindings
+  verbs: [ get, list, create, update, delete, deletecollection, watch]
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - routes
+  - routes/custom-host
+  verbs: [ get, list, create, update, delete, deletecollection, watch]
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: default-account-managed-service-controller-fuse-grant-perms
+subjects:
+- kind: ServiceAccount
+  name: default
+  # needs to be set on deploy
+  namespace: managed-service-admin
+roleRef:
+  kind: ClusterRole
+  name: syndesis-operator
+  apiGroup: rbac.authorization.k8s.io
+
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: managed-services-edit-
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+- kind: ServiceAccount
+  name: default
+  # needs to be set on deploy
+  namespace: managed-service-admin
+---
+# Fuse permissions end
+
+# managed-service-controller-admin start
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: managed-service-controller-admin
 rules:
 - apiGroups:
   - ""
@@ -52,6 +196,7 @@ rules:
   - rolebindings
   verbs:
   - "create"
+  - "delete"
 - apiGroups:
   - apps
   resources:
@@ -60,10 +205,28 @@ rules:
   - "get"
   - "update"
 ---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  generateName: managed-services-admin-
+roleRef:
+  kind: ClusterRole
+  name: managed-service-controller-admin
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: default
+  # needs to be set on deploy
+  namespace: managed-service-admin
+---
+# managed-service-controller-admin end
 
+# review these
+# Integration controller permissions start
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
+  # rename this as its no longer just updates or keep it separate as this is for the user. its cleaner to create separate roles
   name: integration-update
 rules:
 - apiGroups:
@@ -72,6 +235,16 @@ rules:
   - "integrations"
   verbs:
   - "update"
+- apiGroups:
+  - apps.openshift.io
+  resources:
+  - deploymentconfigs
+  verbs: ["create", "get", "update"]
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  verbs: ["create", "list", "delete"]
 
 ---
 kind: ClusterRoleBinding
@@ -86,9 +259,65 @@ subjects:
 - kind: ServiceAccount
   name: default
   # needs to be set on deploy
-  namespace: managed-services-admin
+  namespace: managed-service-admin
 
 ---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: integration-controller
+rules:
+- apiGroups:
+  - integreatly.org
+  resources:
+  - "*"
+  verbs:
+  - "*"
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - services
+  - endpoints
+  - persistentvolumeclaims
+  - events
+  - configmaps
+  - secrets
+  verbs:
+  - "*"
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - daemonsets
+  - replicasets
+  - statefulsets
+  verbs:
+  - "*"
+- apiGroups:
+  - syndesis.io
+  resources:
+  - "*"
+  verbs:
+  - "*"
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: managed-services-integration-grant-perms-
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: integration-controller
+subjects:
+- kind: ServiceAccount
+  name: default
+  # needs to be set on deploy
+  namespace: managed-service-admin
+# Integration controller permissions end
+---
+
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
@@ -101,22 +330,7 @@ subjects:
 - kind: ServiceAccount
   name: default
   # needs to be set on deploy
-  namespace: managed-services-admin
-
----
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1beta1
-metadata:
-  generateName: managed-services-admin-
-roleRef:
-  kind: ClusterRole
-  name: managed-services-controller-admin
-  apiGroup: rbac.authorization.k8s.io
-subjects:
-- kind: ServiceAccount
-  name: default
-  # needs to be set on deploy
-  namespace: managed-services-admin
+  namespace: managed-service-admin
 
 ---
 # can we use groups here
@@ -132,7 +346,7 @@ subjects:
 - kind: ServiceAccount
   name: default
   # needs to be set on deploy
-  namespace: managed-services-admin
+  namespace: managed-service-admin
 
 ---
   # can we use groups here
@@ -142,10 +356,10 @@ metadata:
   generateName: managed-service-controller-route-viewer-
 roleRef:
   kind: ClusterRole
-  name: route-service-integrator
+  name: route-service-viewer
   apiGroup: rbac.authorization.k8s.io
 subjects:
 - kind: ServiceAccount
   name: default
   # needs to be set on deploy
-  namespace: managed-services-admin
+  namespace: managed-service-admin

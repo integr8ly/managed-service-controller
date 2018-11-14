@@ -2,25 +2,25 @@ package handlers
 
 import (
 	"context"
-	integreatly "github.com/integr8ly/managed-services-controller/pkg/apis/integreatly/v1alpha1"
+	integreatly "github.com/integr8ly/managed-service-controller/pkg/apis/integreatly/v1alpha1"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"k8s.io/client-go/rest"
 )
 
-func NewHandler(cfg *rest.Config) sdk.Handler {
-	return &Handler{
-		cfg: cfg,
-	}
+type Handler struct {
+	msnHandler *ManagedServiceNamespaceHandler
 }
 
-type Handler struct {
-	cfg *rest.Config
+func NewHandler(cfg *rest.Config) sdk.Handler {
+	return &Handler{
+		msnHandler: NewManagedServiceNamespaceHandler(cfg),
+	}
 }
 
 func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
 	switch o := event.Object.(type) {
 	case *integreatly.ManagedServiceNamespace:
-		return handleManagedServiceNamespace(ctx, event, o, h.cfg)
+		return h.msnHandler.Handle(ctx, event, o)
 	}
 
 	return nil

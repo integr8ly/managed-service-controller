@@ -1,7 +1,7 @@
 package v1alpha1
 
 import (
-	integreatly "github.com/integr8ly/managed-services-controller/pkg/apis/integreatly/v1alpha1"
+	integreatly "github.com/integr8ly/managed-service-controller/pkg/apis/integreatly/v1alpha1"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 )
@@ -21,21 +21,7 @@ func NewFuseOperatorManager(client kubernetes.Interface, oscf *ClientFactory) Ma
 }
 
 func (fom *fuseOperatorManager) Create(msn *integreatly.ManagedServiceNamespace) error {
-	namespace := msn.Name
-
-	if _, err := fom.k8sClient.CoreV1().ServiceAccounts(namespace).Create(fuseServiceAccount); err != nil {
-		return errors.Wrap(err, "failed to create service account for fuse service")
-	}
-
-	if _, err := fom.k8sClient.RbacV1beta1().Roles(namespace).Create(fuseServiceRole); err != nil {
-		return errors.Wrap(err, "failed to create role for fuse service")
-	}
-
-	if err := fom.createRoleBindings(namespace); err != nil {
-		return err
-	}
-
-	if err := fom.createFuseOperator(namespace); err != nil {
+	if err := fom.createFuseOperator(msn.Name); err != nil {
 		return err
 	}
 
@@ -47,7 +33,7 @@ func (fom *fuseOperatorManager) Update(msn *integreatly.ManagedServiceNamespace)
 }
 
 func (fom *fuseOperatorManager) createRoleBindings(namespace string) error {
-	if _, err := fom.k8sClient.RbacV1beta1().RoleBindings(namespace).Create(serviceRoleBinding); err != nil {
+	if _, err := fom.k8sClient.RbacV1beta1().RoleBindings(namespace).Create(fuseServiceRoleBinding); err != nil {
 		return errors.Wrap(err, "failed to create install role binding for fuse service")
 	}
 
@@ -68,6 +54,18 @@ func (fom *fuseOperatorManager) createRoleBindings(namespace string) error {
 }
 
 func (fom *fuseOperatorManager) createFuseOperator(namespace string) error {
+	if _, err := fom.k8sClient.CoreV1().ServiceAccounts(namespace).Create(fuseServiceAccount); err != nil {
+		return errors.Wrap(err, "failed to create service account for fuse service")
+	}
+
+	//if _, err := fom.k8sClient.RbacV1beta1().Roles(namespace).Create(fuseServiceRole); err != nil {
+	//	return errors.Wrap(err, "failed to create role for fuse service")
+	//}
+
+	if err := fom.createRoleBindings(namespace); err != nil {
+		return err
+	}
+
 	dcClient, err := fom.osClientFactory.AppsClient()
 	if err != nil {
 		return errors.Wrap(err, "failed to create an openshift deployment config client")

@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/integr8ly/managed-services-controller/pkg/handlers"
+	"github.com/integr8ly/managed-service-controller/pkg/handlers"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/operator-framework/operator-sdk/pkg/util/k8sutil"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
