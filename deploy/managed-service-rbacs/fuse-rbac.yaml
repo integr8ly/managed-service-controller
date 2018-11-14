@@ -1,0 +1,159 @@
+# Required permissions to deploy fuse operator
+
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: managed-service-controller-fuse-admin
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
+  verbs:
+  - create
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  - rolebindings
+  verbs:
+  - create
+- apiGroups:
+  - apps.openshift.io
+  resources:
+  - deploymentconfigs
+  verbs:
+  - create
+- apiGroups:
+  - authorization.openshift.io
+  resources:
+  - rolebindings
+  verbs:
+  - create
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  generateName: default-account-managed-service-controller-fuse-admin-
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: ${NAMESPACE}
+roleRef:
+  kind: ClusterRole
+  name: managed-service-controller-fuse-perms
+  apiGroup: rbac.authorization.k8s.io
+---
+
+# syndesis permissions. managed-service-controller needs these permissions at the cluster level to be able to grant them to each operator.
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: syndesis-operator
+  labels:
+    app: syndesis
+    syndesis.io/app: syndesis
+    syndesis.io/type: operator
+    syndesis.io/component: syndesis-operator
+rules:
+- apiGroups:
+  - syndesis.io
+  resources:
+  - syndesises
+  - syndesises/finalizers
+  verbs: [ get, list, create, update, delete, deletecollection, watch ]
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - services
+  - endpoints
+  - persistentvolumeclaims
+  - configmaps
+  - secrets
+  - serviceaccounts
+  verbs: [ get, list, create, update, delete, deletecollection, watch]
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs: [ get, list ]
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  verbs: [ get, list, create, update, delete, deletecollection, watch]
+- apiGroups:
+  - template.openshift.io
+  resources:
+  - processedtemplates
+  verbs: [ get, list, create, update, delete, deletecollection, watch]
+- apiGroups:
+  - image.openshift.io
+  resources:
+  - imagestreams
+  verbs: [ get, list, create, update, delete, deletecollection, watch]
+- apiGroups:
+  - apps.openshift.io
+  resources:
+  - deploymentconfigs
+  verbs: [ get, list, create, update, delete, deletecollection, watch]
+- apiGroups:
+  - build.openshift.io
+  resources:
+  - buildconfigs
+  verbs: [ get, list, create, update, delete, deletecollection, watch]
+- apiGroups:
+  - authorization.openshift.io
+  resources:
+  - rolebindings
+  verbs: [ get, list, create, update, delete, deletecollection, watch]
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - routes
+  - routes/custom-host
+  verbs: [ get, list, create, update, delete, deletecollection, watch]
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  generateName: default-account-managed-service-controller-grant-fuse-perms-
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: ${NAMESPACE}
+roleRef:
+  kind: ClusterRole
+  name: syndesis-operator
+  apiGroup: rbac.authorization.k8s.io
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  generateName: default-account-managed-service-controller-edit-
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: ${NAMESPACE}
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  generateName: default-account-managed-service-controller-view-
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: ${NAMESPACE}
