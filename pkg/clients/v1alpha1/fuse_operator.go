@@ -6,8 +6,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-const FUSE_IMAGE_STREAMS_NAMESPACE string = "openshift"
-
 type fuseOperatorManager struct {
 	k8sClient       kubernetes.Interface
 	osClientFactory *ClientFactory
@@ -57,10 +55,6 @@ func (fom *fuseOperatorManager) createFuseOperator(namespace string) error {
 	if _, err := fom.k8sClient.CoreV1().ServiceAccounts(namespace).Create(fuseServiceAccount); err != nil {
 		return errors.Wrap(err, "failed to create service account for fuse service")
 	}
-
-	//if _, err := fom.k8sClient.RbacV1beta1().Roles(namespace).Create(fuseServiceRole); err != nil {
-	//	return errors.Wrap(err, "failed to create role for fuse service")
-	//}
 
 	if err := fom.createRoleBindings(namespace); err != nil {
 		return err

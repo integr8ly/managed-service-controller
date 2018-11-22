@@ -28,18 +28,17 @@ func (msnh *ManagedServiceNamespaceHandler) Handle(
 	ns := msn.Name
 	if event.Deleted {
 		logrus.Info("Deleting ManagedServiceNamespace: " + ns)
-		// TODO: Change these to msnh.Delete(msn)
-		if err := msnh.client.Delete(msn); err != nil {
+		if err := msnh.Delete(msn); err != nil {
 			return err
 		}
 	} else {
-		if err := msnh.client.Validate(msn); err != nil {
-			logrus.Info("ManagedServiceNamespace resource is invalid: " + err.Error())
+		if err := msnh.Validate(msn); err != nil {
+			logrus.Infof("ManagedServiceNamespace %s is invalid: %s" , msn.Name, err.Error())
 			return nil
 		}
 
-		if msnh.client.Exists(msn) {
-			if err := msnh.client.Update(msn); err != nil {
+		if msnh.Exists(msn) {
+			if err := msnh.Update(msn); err != nil {
 				return err
 			}
 			return nil
@@ -48,7 +47,7 @@ func (msnh *ManagedServiceNamespaceHandler) Handle(
 		logrus.Info("New ManagedServiceNamespace event")
 
 		logrus.Info("Creating ManagedServiceNamespace: " + ns)
-		if err := msnh.client.Create(msn); err != nil {
+		if err := msnh.Create(msn); err != nil {
 			return err
 		}
 
@@ -56,4 +55,24 @@ func (msnh *ManagedServiceNamespaceHandler) Handle(
 	}
 
 	return nil
+}
+
+func (msnh *ManagedServiceNamespaceHandler) Delete(msn *integreatly.ManagedServiceNamespace) error {
+	return msnh.client.Delete(msn)
+}
+
+func (msnh *ManagedServiceNamespaceHandler) Validate(msn *integreatly.ManagedServiceNamespace) error {
+	return msnh.client.Validate(msn)
+}
+
+func (msnh *ManagedServiceNamespaceHandler) Exists(msn *integreatly.ManagedServiceNamespace) bool {
+	return msnh.client.Exists(msn)
+}
+
+func (msnh *ManagedServiceNamespaceHandler) Update(msn *integreatly.ManagedServiceNamespace) error {
+	return msnh.client.Update(msn)
+}
+
+func (msnh *ManagedServiceNamespaceHandler) Create(msn *integreatly.ManagedServiceNamespace) error {
+	return msnh.client.Create(msn)
 }

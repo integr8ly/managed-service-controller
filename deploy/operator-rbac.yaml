@@ -48,6 +48,12 @@ rules:
   - rolebindings
   verbs:
   - create
+- apiGroups:
+  - user.openshift.io
+  resources:
+  - users
+  verbs:
+  - get
 ---
 
 kind: ClusterRoleBinding

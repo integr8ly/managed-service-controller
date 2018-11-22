@@ -5,40 +5,24 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	rbacv1beta1 "k8s.io/api/rbac/v1beta1"
 	appsv1 "github.com/openshift/api/apps/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
+	integreatly "github.com/integr8ly/managed-service-controller/pkg/apis/integreatly/v1alpha1"
 )
+
+// TODO: remove and use object names where possible. move to api objects as well
+const (
+	EnmasseNamespace                   = "enmasse"
+	EnmasseClusterRoleName             = "enmasse-integration-viewer"
+	RoutesAndServicesClusterRoleName   = "route-service-viewer"
+	IntegrationControllerName          = "integration-controller"
+	IntegrationUserNamespacesEnvVarKey = "USER_NAMESPACES"
+)
+
 var integrationServiceAccount = &corev1.ServiceAccount{
 	ObjectMeta: metav1.ObjectMeta{
 		Name: "integration-controller",
 	},
 }
-
-//var integrationServiceRole = &rbacv1beta1.Role{
-//	ObjectMeta: metav1.ObjectMeta{
-//		Name: "integration-controller",
-//	},
-//	Rules: []rbacv1beta1.PolicyRule{
-//		{
-//			APIGroups: []string{"integreatly.org"},
-//			Resources: []string{"*"},
-//			Verbs:     []string{"*"},
-//		},
-//		{
-//			APIGroups: []string{""},
-//			Resources: []string{"pods", "services", "endpoints", "persistentvolumeclaims", "configmaps", "secrets"},
-//			Verbs:     []string{"*"},
-//		},
-//		{
-//			APIGroups: []string{"apps"},
-//			Resources: []string{"deployments", "daemonsets", "replicasets", "statefulsets"},
-//			Verbs:     []string{"*"},
-//		},
-//		{
-//			APIGroups: []string{"syndesis.io"},
-//			Resources: []string{"*"},
-//			Verbs:     []string{"*"},
-//		},
-//	},
-//}
 
 var integrationServiceRoleBinding = &rbacv1beta1.RoleBinding{
 	ObjectMeta: metav1.ObjectMeta{
@@ -116,4 +100,66 @@ var integrationDeploymentConfig = &appsv1.DeploymentConfig{
 			},
 		},
 	},
+}
+
+func getEnmasseConfigMapRoleBinding(namespace string) *rbacv1.RoleBinding {
+	return &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: IntegrationControllerName + "-enmasse-view-",
+			Namespace:    EnmasseNamespace,
+			Labels: map[string]string{
+				"for": IntegrationControllerName,
+			},
+		},
+		RoleRef: clusterRole(EnmasseClusterRoleName),
+		Subjects: []rbacv1.Subject{
+			serviceAccountSubject(namespace),
+		},
+	}
+}
+
+func getRoutesAndServicesRoleBinding(managedServiceNamespace string) *rbacv1.RoleBinding {
+		return  &rbacv1.RoleBinding{
+			ObjectMeta: metav1.ObjectMeta{
+				GenerateName: IntegrationControllerName + "-route-services-",
+				Labels: map[string]string{
+					"for": "route-services",
+				},
+			},
+			RoleRef: clusterRole(RoutesAndServicesClusterRoleName),
+			Subjects: []rbacv1.Subject{
+				serviceAccountSubject(managedServiceNamespace),
+			},
+		}
+}
+
+func getUpdateIntegrationsRoleBinding(msn *integreatly.ManagedServiceNamespace) *rbacv1.RoleBinding {
+	return &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace:    msn.Name,
+			GenerateName: msn.Spec.UserID + "-update-integrations-" + msn.Name + "-",
+		},
+		RoleRef: clusterRole("integration-update"),
+		Subjects: []rbacv1.Subject{
+			{
+				Kind: "User",
+				Name: msn.Spec.UserID,
+			},
+		},
+	}
+}
+
+func clusterRole(roleName string) rbacv1.RoleRef {
+	return rbacv1.RoleRef{
+		Kind: "ClusterRole",
+		Name: roleName,
+	}
+}
+
+func serviceAccountSubject(namespace string) rbacv1.Subject {
+	return rbacv1.Subject{
+		Kind:      "ServiceAccount",
+		Name:      IntegrationControllerName,
+		Namespace: namespace,
+	}
 }

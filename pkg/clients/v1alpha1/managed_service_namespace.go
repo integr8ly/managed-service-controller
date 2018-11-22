@@ -6,8 +6,8 @@ import (
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	apiErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
@@ -19,9 +19,8 @@ const (
 
 type managedServiceNamespacesClient struct {
 	k8sClient              kubernetes.Interface
+	osClient               *ClientFactory
 	managedServiceManagers []ManagedServiceManagerInterface
-	// TODO: Remove
-	namespaces             <-chan watch.Event
 }
 
 type ManagedServiceManagerInterface interface {
@@ -34,11 +33,11 @@ func NewManagedServiceNamespaceClient(cfg *rest.Config) ManagedServiceNamespaceI
 	osClient := NewClientFactory(cfg)
 	return &managedServiceNamespacesClient{
 		k8sClient: k8sClient,
+		osClient: osClient,
 		managedServiceManagers: []ManagedServiceManagerInterface{
 			NewFuseOperatorManager(k8sClient, osClient),
 			NewIntegrationControllerManager(k8sClient, osClient),
 		},
-		namespaces: nil,
 	}
 }
 
@@ -85,40 +84,53 @@ func (msnsc *managedServiceNamespacesClient) Update(msn *integreatly.ManagedServ
 
 func (msnsc *managedServiceNamespacesClient) Validate(msn *integreatly.ManagedServiceNamespace) error {
 	if len(msn.Spec.ConsumerNamespaces) == 0 {
-		return errors.New("ManagedServiceNamespace: " + msn.Name + " has no consumerNamespace set")
+		return errors.New(" No consumerNamespace set")
 	}
 
+	if err := msnsc.validateConsumerNamespaces(msn); err != nil {
+		return err
+	}
+
+	if err := msnsc.validateUser(msn); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (msnsc *managedServiceNamespacesClient) validateConsumerNamespaces(msn *integreatly.ManagedServiceNamespace) error {
 	nsList, err := msnsc.k8sClient.CoreV1().Namespaces().List(metav1.ListOptions{}); if err != nil {
 		return err
 	}
 
-	return msn.Validate(nsList)
-	// TODO: Use a chan?
-	// TODO: Validate the user
-	//if msnsc.namespaces == nil {
-	//	logrus.Info("namespaces are nil")
-	//	var event watch.Event
-	//	var test *corev1.NamespaceList
-	//	var ok bool
-	//	nsWatch, err := msnsc.k8sClient.CoreV1().Namespaces().Watch(metav1.ListOptions{}); if err != nil {
-	//		return err
-	//	}
-	//	switch <-nsWatch.ResultChan() {
-	//	case event:
-	//		test, ok = event.Object.(*corev1.NamespaceList)
-	//	}
-	//	//msnsc.namespaces = nsWatch.ResultChan()
-	//	//namespaces := <- msnsc.namespaces
-	//	//namespaceslist, ok := namespaces.Object.(*corev1.NamespaceList)
-	//	logrus.Info("namespaces are nil %v", ok)
-	//	if ok {
-	//		return msn.Validate(test)
-	//	}
-	//}
+	for _, a := range msn.Spec.ConsumerNamespaces {
+		valid := false
+		for _, b := range nsList.Items {
+			if a == b.Name {
+				valid = true
+				break
+			}
+		}
+		if !valid {
+			return errors.New("The consumer namespace " + a + " does not exist.")
+		}
+	}
 
+	return nil
+}
 
+func (msnsc *managedServiceNamespacesClient) validateUser(msn *integreatly.ManagedServiceNamespace) error {
+	userClient, err := msnsc.osClient.UserClient(); if err != nil {
+		return err
+	}
+	if _, err = userClient.Users().Get(msn.Spec.UserID, metav1.GetOptions{}); err != nil {
+		if apiErrors.IsNotFound(err) {
+			return errors.New("User " + msn.Spec.UserID + " does not exist")
+		}
+		return err
+	}
 
-	//return nil
+	return nil
 }
 
 func createNamespace(c kubernetes.Interface, namespace string) error {

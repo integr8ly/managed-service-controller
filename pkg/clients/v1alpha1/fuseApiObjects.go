@@ -8,6 +8,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const FUSE_IMAGE_STREAMS_NAMESPACE string = "openshift"
+
 var fuseServiceAccount = &corev1.ServiceAccount{
 	ObjectMeta: metav1.ObjectMeta{
 		Name: "syndesis-operator",
@@ -19,71 +21,6 @@ var fuseServiceAccount = &corev1.ServiceAccount{
 		},
 	},
 }
-
-//Removed as the managed-service-controller needs to grant these permissions
-//var fuseServiceRole = &rbacv1beta1.Role{
-//	ObjectMeta: metav1.ObjectMeta{
-//		Name: "syndesis-operator",
-//		Labels: map[string]string{
-//			"app":                   "syndesis",
-//			"syndesis.io/app":       "syndesis",
-//			"syndesis.io/type":      "operator",
-//			"syndesis.io/component": "syndesis-operator",
-//		},
-//	},
-//	Rules: []rbacv1beta1.PolicyRule{
-//		{
-//			APIGroups: []string{"syndesis.io"},
-//			Resources: []string{"syndesises", "syndesises/finalizers"},
-//			Verbs:     []string{"get", "list", "create", "update", "delete", "deletecollection", "watch"},
-//		},
-//		{
-//			APIGroups: []string{""},
-//			Resources: []string{"pods", "services", "endpoints", "persistentvolumeclaims", "configmaps", "secrets", "serviceaccounts"},
-//			Verbs:     []string{"get", "list", "create", "update", "delete", "deletecollection", "watch"},
-//		},
-//		{
-//			APIGroups: []string{""},
-//			Resources: []string{"events"},
-//			Verbs:     []string{"get", "list"},
-//		},
-//		{
-//			APIGroups: []string{"rbac.authorization.k8s.io"},
-//			Resources: []string{"rolebindings"},
-//			Verbs:     []string{"get", "list", "create", "update", "delete", "deletecollection", "watch"},
-//		},
-//		{
-//			APIGroups: []string{"template.openshift.io"},
-//			Resources: []string{"processedtemplates"},
-//			Verbs:     []string{"get", "list", "create", "update", "delete", "deletecollection", "watch"},
-//		},
-//		{
-//			APIGroups: []string{"image.openshift.io"},
-//			Resources: []string{"imagestreams"},
-//			Verbs:     []string{"get", "list", "create", "update", "delete", "deletecollection", "watch"},
-//		},
-//		{
-//			APIGroups: []string{"apps.openshift.io"},
-//			Resources: []string{"deploymentconfigs"},
-//			Verbs:     []string{"get", "list", "create", "update", "delete", "deletecollection", "watch"},
-//		},
-//		{
-//			APIGroups: []string{"build.openshift.io"},
-//			Resources: []string{"buildconfigs"},
-//			Verbs:     []string{"get", "list", "create", "update", "delete", "deletecollection", "watch"},
-//		},
-//		{
-//			APIGroups: []string{"authorization.openshift.io"},
-//			Resources: []string{"rolebindings"},
-//			Verbs:     []string{"get", "list", "create", "update", "delete", "deletecollection", "watch"},
-//		},
-//		{
-//			APIGroups: []string{"route.openshift.io"},
-//			Resources: []string{"routes", "routes/custom-host"},
-//			Verbs:     []string{"get", "list", "create", "update", "delete", "deletecollection", "watch"},
-//		},
-//	},
-//}
 
 var fuseServiceRoleBinding = &rbacv1beta1.RoleBinding{
 	ObjectMeta: metav1.ObjectMeta{
