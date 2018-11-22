@@ -17,16 +17,12 @@ type ManagedServiceNamespaceList struct {
 type ManagedServiceNamespace struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
-	Spec              ManagedServiceNamespaceSpec   `json:"spec"`
-	Status            ManagedServiceNamespaceStatus `json:"status,omitempty"`
+	Spec              ManagedServiceNamespaceSpec `json:"spec"`
 }
 
 type ManagedServiceNamespaceSpec struct {
-	metav1.TypeMeta                 `json:",inline"`
-	metav1.ObjectMeta               `json:"metadata"`
-	ManagedNamespace string         `json:"managedNamespace"`
-	ConsumerNamespaces []string     `json:"consumerNamespaces"`
-}
-type ManagedServiceNamespaceStatus struct {
-	// Fill me
+	metav1.TypeMeta    `json:",inline"`
+	metav1.ObjectMeta  `json:"metadata"`
+	ConsumerNamespaces []string `json:"consumerNamespaces"`
+	UserID             string   `json:"userId"`
 }

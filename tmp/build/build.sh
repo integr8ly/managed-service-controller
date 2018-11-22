@@ -9,10 +9,15 @@ if ! which go > /dev/null; then
 	exit 1
 fi
 
+if [ -z "${1-}" ] ; then
+    echo "PROJECT_NAME not set or empty"
+    exit 1
+fi
+
+PROJECT_NAME=$1
 BIN_DIR="$(pwd)/tmp/_output/bin"
 mkdir -p ${BIN_DIR}
-PROJECT_NAME="managed-services-controller"
-REPO_PATH="github.com/integr8ly/managed-services-controller"
+REPO_PATH="github.com/integr8ly/${PROJECT_NAME}"
 BUILD_PATH="${REPO_PATH}/cmd/${PROJECT_NAME}"
 echo "building "${PROJECT_NAME}"..."
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ${BIN_DIR}/${PROJECT_NAME} $BUILD_PATH

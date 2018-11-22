@@ -5,7 +5,15 @@ if ! which docker > /dev/null; then
 	exit 1
 fi
 
-: ${IMAGE:?"Need to set IMAGE, e.g. gcr.io/<repo>/<your>-operator"}
+if (( $# != 3 )); then
+	echo "DOCKERORG, PROJECT_NAME, and TAG must be set"
+	exit 1
+fi;
+
+DOCKERORG=$1
+PROJECT_NAME=$2
+TAG=$3
+IMAGE=$DOCKERORG/$PROJECT_NAME:$TAG
 
 echo "building container ${IMAGE}..."
 docker build -t "${IMAGE}" -f tmp/build/Dockerfile .
