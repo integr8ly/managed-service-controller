@@ -30,11 +30,13 @@ $ oc create -f ./deploy/crd.yaml
 ```
 
 #### Managed Service Requirements
-The managed-service-controller currently installs the managed services:
+The managed-service-controller currently installs the managed services/managed servie operators:
 - [Fuse](https://github.com/syndesisio/syndesis/tree/master/install/operator)
 - [Integration controller](https://github.com/integr8ly/integration-controller)
 
-into the managed service namespace. Setup the required resources for those services.
+into a managed service namespace.
+
+Setup the required resources for those services.
 
 ```bash
 # RBACS
@@ -45,13 +47,11 @@ $ oc create -f https://raw.githubusercontent.com/integr8ly/integration-controlle
 $ oc create -f https://raw.githubusercontent.com/syndesisio/syndesis/master/install/operator/deploy/syndesis-crd.yml
 $ oc create -f https://raw.githubusercontent.com/integr8ly/integration-controller/master/deploy/crd.yaml
 
-***SHOULD THIS BE MOVED INTO THE CONTROLLER****
 # Fuse Image Streams
 $ oc create -f https://raw.githubusercontent.com/syndesisio/fuse-online-install/1.4.8/resources/fuse-online-image-streams.yml -n openshift
 $ oc create -f ./deploy/fuse-image-stream.yaml -n openshift
 ```
 
-***GROUPS FIX THIS?****
 ```bash
 # Create enmasse namespace
 $ oc create namespace enmasse
@@ -83,7 +83,7 @@ metadata:
   name: "managed-services-project"
 ```
 
-__NOTE:__ Ensure any namespaces in the `consumerNamespaces` array are created.
+__NOTE:__ Ensure the User and any namespaces in the `consumerNamespaces` array exist in the cluster.
 
 Create the custom resource:
 ```bash
