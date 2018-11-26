@@ -5,7 +5,7 @@ Kubernetes Controller to create a managed service namespace.
 A managed service namespace will consist of managed services.
 A managed service is something that a user of a cluster can make use of without needing to be concerned about the maintenance and overhead of operating that service.
 
-These are usually heavy weight services that will be shared among many users.
+These are heavy weight services that will be single tenant services, e.g. a service shared by a single tenant across multiple consumer namespaces.
 
 ## Status
 POC
