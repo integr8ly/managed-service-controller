@@ -5,5 +5,11 @@
     "imageOrg": "quay.io/integreatly",
     "imageTag": "dev",
     "allowInsecure": "true"
+  },
+  "fuse": {
+    "name": "syndesis",
+    "imageName": "fuse-online-operator",
+    "imageTag": "1.4",
+    "imageStreamNamespace": "openshift"
   }
 }

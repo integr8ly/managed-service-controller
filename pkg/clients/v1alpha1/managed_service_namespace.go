@@ -35,7 +35,7 @@ func NewManagedServiceNamespaceClient(cfg *rest.Config, sCfg map[string]map[stri
 		k8sClient: k8sClient,
 		osClient:  osClient,
 		managedServiceManagers: []ManagedServiceManagerInterface{
-			NewFuseOperatorManager(k8sClient, osClient),
+			NewFuseOperatorManager(k8sClient, osClient, sCfg["fuse"]),
 			NewIntegrationControllerManager(k8sClient, osClient, sCfg["integrationController"]),
 		},
 	}

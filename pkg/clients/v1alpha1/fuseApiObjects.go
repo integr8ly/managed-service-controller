@@ -8,126 +8,140 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const FUSE_IMAGE_STREAMS_NAMESPACE string = "openshift"
-
-var fuseServiceAccount = &corev1.ServiceAccount{
-	ObjectMeta: metav1.ObjectMeta{
-		Name: "syndesis-operator",
-		Labels: map[string]string{
-			"app":                   "syndesis",
-			"syndesis.io/app":       "syndesis",
-			"syndesis.io/type":      "operator",
-			"syndesis.io/component": "syndesis-operator",
-		},
-	},
-}
-
-var fuseServiceRoleBinding = &rbacv1beta1.RoleBinding{
-	ObjectMeta: metav1.ObjectMeta{
-		Name: "syndesis-operator:install",
-		Labels: map[string]string{
-			"app":                   "syndesis",
-			"syndesis.io/app":       "syndesis",
-			"syndesis.io/type":      "operator",
-			"syndesis.io/component": "syndesis-operator",
-		},
-	},
-	Subjects: []rbacv1beta1.Subject{
-		{
-			Kind: "ServiceAccount",
-			Name: "syndesis-operator",
-		},
-	},
-	RoleRef: rbacv1beta1.RoleRef{
-		Kind:     "ClusterRole",
-		Name:     "syndesis-operator",
-		APIGroup: "rbac.authorization.k8s.io",
-	},
-}
-
-var viewRoleBinding = &authv1.RoleBinding{
-	ObjectMeta: metav1.ObjectMeta{
-		Name: "syndesis-operator:view",
-		Labels: map[string]string{
-			"app":                   "syndesis",
-			"syndesis.io/app":       "syndesis",
-			"syndesis.io/type":      "operator",
-			"syndesis.io/component": "syndesis-operator",
-		},
-	},
-	Subjects: []corev1.ObjectReference{
-		{
-			Kind: "ServiceAccount",
-			Name: "syndesis-operator",
-		},
-	},
-	RoleRef: corev1.ObjectReference{
-		Name: "view",
-	},
-}
-
-var editRoleBinding = &authv1.RoleBinding{
-	ObjectMeta: metav1.ObjectMeta{
-		Name: "syndesis-operator:edit",
-		Labels: map[string]string{
-			"app":                   "syndesis",
-			"syndesis.io/app":       "syndesis",
-			"syndesis.io/type":      "operator",
-			"syndesis.io/component": "syndesis-operator",
-		},
-	},
-	Subjects: []corev1.ObjectReference{
-		{
-			Kind: "ServiceAccount",
-			Name: "syndesis-operator",
-		},
-	},
-	RoleRef: corev1.ObjectReference{
-		Name: "edit",
-	},
-}
-
-var fuseDeploymentConfig = &appsv1.DeploymentConfig{
-	ObjectMeta: metav1.ObjectMeta{
-		Name: "syndesis-operator",
-		Labels: map[string]string{
-			"app":                   "syndesis",
-			"syndesis.io/app":       "syndesis",
-			"syndesis.io/type":      "operator",
-			"syndesis.io/component": "syndesis-operator",
-		},
-	},
-	Spec: appsv1.DeploymentConfigSpec{
-		Strategy: appsv1.DeploymentStrategy{
-			Type: "Recreate",
-		},
-		Replicas: 1,
-		Selector: map[string]string{
-			"syndesis.io/app":       "syndesis",
-			"syndesis.io/type":      "operator",
-			"syndesis.io/component": "syndesis-operator",
-		},
-		Template: &corev1.PodTemplateSpec{
-			ObjectMeta: metav1.ObjectMeta{
-				Labels: map[string]string{
-					"syndesis.io/app":       "syndesis",
-					"syndesis.io/type":      "operator",
-					"syndesis.io/component": "syndesis-operator",
-				},
+func getFuseServiceAccount(name string) *corev1.ServiceAccount {
+	operatorName := name + "-operator"
+	return &corev1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: operatorName,
+			Labels: map[string]string{
+				"app":                   name,
+				"syndesis.io/app":       name,
+				"syndesis.io/type":      "operator",
+				"syndesis.io/component": operatorName,
 			},
-			Spec: corev1.PodSpec{
-				ServiceAccountName: "syndesis-operator",
-				Containers: []corev1.Container{
-					{
-						Name:            "syndesis-operator",
-						Image:           " ",
-						ImagePullPolicy: "IfNotPresent",
-						Env: []corev1.EnvVar{
-							{
-								Name: "WATCH_NAMESPACE",
-								ValueFrom: &corev1.EnvVarSource{
-									FieldRef: &corev1.ObjectFieldSelector{
-										FieldPath: "metadata.namespace",
+		},
+	}
+}
+
+func getFuseServiceRoleBinding(name string) *rbacv1beta1.RoleBinding {
+	operatorName := name + "-operator"
+	return &rbacv1beta1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: operatorName + ":install",
+			Labels: map[string]string{
+				"app":                   name,
+				"syndesis.io/app":       name,
+				"syndesis.io/type":      "operator",
+				"syndesis.io/component": operatorName,
+			},
+		},
+		Subjects: []rbacv1beta1.Subject{
+			{
+				Kind: "ServiceAccount",
+				Name: operatorName,
+			},
+		},
+		RoleRef: rbacv1beta1.RoleRef{
+			Kind:     "ClusterRole",
+			Name:     operatorName,
+			APIGroup: "rbac.authorization.k8s.io",
+		},
+	}
+}
+
+func getViewRoleBinding(name string) *authv1.RoleBinding {
+	operatorName := name + "-operator"
+	return &authv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: operatorName + ":view",
+			Labels: map[string]string{
+				"app":                   name,
+				"syndesis.io/app":       name,
+				"syndesis.io/type":      "operator",
+				"syndesis.io/component": operatorName,
+			},
+		},
+		Subjects: []corev1.ObjectReference{
+			{
+				Kind: "ServiceAccount",
+				Name: operatorName,
+			},
+		},
+		RoleRef: corev1.ObjectReference{
+			Name: "view",
+		},
+	}
+}
+
+func getEditRoleBinding(name string) *authv1.RoleBinding {
+	operatorName := name + "-operator"
+	return &authv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: operatorName + ":edit",
+			Labels: map[string]string{
+				"app":                   name,
+				"syndesis.io/app":       name,
+				"syndesis.io/type":      "operator",
+				"syndesis.io/component": operatorName,
+			},
+		},
+		Subjects: []corev1.ObjectReference{
+			{
+				Kind: "ServiceAccount",
+				Name: operatorName,
+			},
+		},
+		RoleRef: corev1.ObjectReference{
+			Name: "edit",
+		},
+	}
+}
+
+func getFuseDeploymentConfig(cfg map[string]string) *appsv1.DeploymentConfig {
+	operatorName := cfg["name"] + "-operator"
+	return &appsv1.DeploymentConfig{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: operatorName,
+			Labels: map[string]string{
+				"app":                   cfg["name"],
+				"syndesis.io/app":       cfg["name"],
+				"syndesis.io/type":      "operator",
+				"syndesis.io/component": operatorName,
+			},
+		},
+		Spec: appsv1.DeploymentConfigSpec{
+			Strategy: appsv1.DeploymentStrategy{
+				Type: "Recreate",
+			},
+			Replicas: 1,
+			Selector: map[string]string{
+				"syndesis.io/app":       cfg["name"],
+				"syndesis.io/type":      "operator",
+				"syndesis.io/component": operatorName,
+			},
+			Template: &corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"syndesis.io/app":       cfg["name"],
+						"syndesis.io/type":      "operator",
+						"syndesis.io/component": operatorName,
+					},
+				},
+
+				Spec: corev1.PodSpec{
+					ServiceAccountName: operatorName,
+					Containers: []corev1.Container{
+						{
+							Name:            operatorName,
+							Image:           " ",
+							ImagePullPolicy: "IfNotPresent",
+							Env: []corev1.EnvVar{
+								{
+									Name: "WATCH_NAMESPACE",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "metadata.namespace",
+										},
 									},
 								},
 							},
@@ -135,25 +149,25 @@ var fuseDeploymentConfig = &appsv1.DeploymentConfig{
 					},
 				},
 			},
-		},
-		Triggers: appsv1.DeploymentTriggerPolicies{
-			appsv1.DeploymentTriggerPolicy{
-				ImageChangeParams: &appsv1.DeploymentTriggerImageChangeParams{
-					Automatic: true,
-					ContainerNames: []string{
-						"syndesis-operator",
+			Triggers: appsv1.DeploymentTriggerPolicies{
+				appsv1.DeploymentTriggerPolicy{
+					ImageChangeParams: &appsv1.DeploymentTriggerImageChangeParams{
+						Automatic: true,
+						ContainerNames: []string{
+							operatorName,
+						},
+						From: corev1.ObjectReference{
+							Kind:      "ImageStreamTag",
+							Name:      cfg["imageName"] + ":" + cfg["imageTag"],
+							Namespace: cfg["imageStreamNamespace"],
+						},
 					},
-					From: corev1.ObjectReference{
-						Kind:      "ImageStreamTag",
-						Name:      "fuse-online-operator:1.4",
-						Namespace: FUSE_IMAGE_STREAMS_NAMESPACE,
-					},
+					Type: "ImageChange",
 				},
-				Type: "ImageChange",
-			},
-			appsv1.DeploymentTriggerPolicy{
-				Type: "ConfigChange",
+				appsv1.DeploymentTriggerPolicy{
+					Type: "ConfigChange",
+				},
 			},
 		},
-	},
+	}
 }
