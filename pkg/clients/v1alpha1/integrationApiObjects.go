@@ -13,8 +13,6 @@ const (
 	EnmasseNamespace                   = "enmasse"
 	EnmasseClusterRoleName             = "enmasse-integration-viewer"
 	RoutesAndServicesClusterRoleName   = "route-service-viewer"
-	IntegrationControllerName          = "integration-controller"
-	IntegrationUserNamespacesEnvVarKey = "USER_NAMESPACES"
 )
 
 var integrationServiceAccount = &corev1.ServiceAccount{
@@ -40,94 +38,96 @@ var integrationServiceRoleBinding = &rbacv1beta1.RoleBinding{
 	},
 }
 
-var integrationDeploymentConfig = &appsv1.DeploymentConfig{
-	ObjectMeta: metav1.ObjectMeta{
-		Name: IntegrationControllerName,
-	},
-	Spec: appsv1.DeploymentConfigSpec{
-		Strategy: appsv1.DeploymentStrategy{
-			Type: "Recreate",
+func getIntegrationDeploymentConfig(cfg map[string]string) *appsv1.DeploymentConfig {
+	return &appsv1.DeploymentConfig{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: cfg["name"],
 		},
-		Replicas: 1,
-		Selector: map[string]string{
-			"name": IntegrationControllerName,
-		},
-		Template: &corev1.PodTemplateSpec{
-			ObjectMeta: metav1.ObjectMeta{
-				Labels: map[string]string{
-					"name": IntegrationControllerName,
-				},
+		Spec: appsv1.DeploymentConfigSpec{
+			Strategy: appsv1.DeploymentStrategy{
+				Type: "Recreate",
 			},
-			Spec: corev1.PodSpec{
-				ServiceAccountName: IntegrationControllerName,
-				Containers: []corev1.Container{
-					{
-						Name:  "integration-controller",
-						Image: "quay.io/integreatly/" + IntegrationControllerName + ":dev",
-						Ports: []corev1.ContainerPort{
-							{
-								ContainerPort: 60000,
-								Name:          "metrics",
-							},
-						},
-						Command: []string{
-							IntegrationControllerName,
-							"--allow-insecure=true",
-							"--log-level=debug",
-						},
-						ImagePullPolicy: "Always",
-						Env: []corev1.EnvVar{
-							{
-								Name: "WATCH_NAMESPACE",
-								ValueFrom: &corev1.EnvVarSource{
-									FieldRef: &corev1.ObjectFieldSelector{
-										FieldPath: "metadata.namespace",
-									},
+			Replicas: 1,
+			Selector: map[string]string{
+				"name": cfg["name"],
+			},
+			Template: &corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"name": cfg["name"],
+					},
+				},
+				Spec: corev1.PodSpec{
+					ServiceAccountName: cfg["name"],
+					Containers: []corev1.Container{
+						{
+							Name:  "integration-controller",
+							Image: cfg["imageOrg"] + "/" + cfg["name"] + ":" + cfg["imageTag"],
+							Ports: []corev1.ContainerPort{
+								{
+									ContainerPort: 60000,
+									Name:          "metrics",
 								},
 							},
-							{
-								Name:  "OPERATOR_NAME",
-								Value: IntegrationControllerName,
+							Command: []string{
+								cfg["name"],
+								"--allow-insecure=" + cfg["allowInsecure"],
+								"--log-level=debug",
 							},
-							{
-								Name:  "USER_NAMESPACES",
-								Value: "",
+							ImagePullPolicy: "Always",
+							Env: []corev1.EnvVar{
+								{
+									Name: "WATCH_NAMESPACE",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "metadata.namespace",
+										},
+									},
+								},
+								{
+									Name:  "OPERATOR_NAME",
+									Value: cfg["name"],
+								},
+								{
+									Name:  "USER_NAMESPACES",
+									Value: "",
+								},
 							},
 						},
 					},
 				},
 			},
 		},
-	},
+	}
 }
 
-func getEnmasseConfigMapRoleBinding(namespace string) *rbacv1.RoleBinding {
+func getEnmasseConfigMapRoleBinding(namespace string, cfg map[string]string) *rbacv1.RoleBinding {
 	return &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: IntegrationControllerName + "-enmasse-view-",
+			GenerateName: cfg["name"] + "-enmasse-view-",
 			Namespace:    EnmasseNamespace,
 			Labels: map[string]string{
-				"for": IntegrationControllerName,
+				"for": cfg["name"],
 			},
 		},
 		RoleRef: clusterRole(EnmasseClusterRoleName),
 		Subjects: []rbacv1.Subject{
-			serviceAccountSubject(namespace),
+			serviceAccountSubject(namespace, cfg["name"]),
 		},
 	}
 }
 
-func getRoutesAndServicesRoleBinding(managedServiceNamespace string) *rbacv1.RoleBinding {
+func getRoutesAndServicesRoleBinding(managedServiceNamespace string, cfg map[string]string) *rbacv1.RoleBinding {
 	return &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: IntegrationControllerName + "-route-services-",
+			GenerateName: cfg["name"] + "-route-services-",
 			Labels: map[string]string{
 				"for": "route-services",
 			},
 		},
 		RoleRef: clusterRole(RoutesAndServicesClusterRoleName),
 		Subjects: []rbacv1.Subject{
-			serviceAccountSubject(managedServiceNamespace),
+			serviceAccountSubject(managedServiceNamespace, cfg["name"]),
 		},
 	}
 }
@@ -155,10 +155,10 @@ func clusterRole(roleName string) rbacv1.RoleRef {
 	}
 }
 
-func serviceAccountSubject(namespace string) rbacv1.Subject {
+func serviceAccountSubject(namespace, name string) rbacv1.Subject {
 	return rbacv1.Subject{
 		Kind:      "ServiceAccount",
-		Name:      IntegrationControllerName,
+		Name:      name,
 		Namespace: namespace,
 	}
 }

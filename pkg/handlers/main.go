@@ -11,9 +11,9 @@ type Handler struct {
 	msnHandler *ManagedServiceNamespaceHandler
 }
 
-func NewHandler(cfg *rest.Config) sdk.Handler {
+func NewHandler(cfg *rest.Config, sCfg map[string]map[string]string) sdk.Handler {
 	return &Handler{
-		msnHandler: NewManagedServiceNamespaceHandler(cfg),
+		msnHandler: NewManagedServiceNamespaceHandler(cfg, sCfg),
 	}
 }
 

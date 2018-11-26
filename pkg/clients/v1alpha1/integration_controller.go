@@ -14,18 +14,20 @@ import (
 type integrationControllerManager struct {
 	k8sClient       kubernetes.Interface
 	osClientFactory *ClientFactory
+	cfg             map[string]string
 }
 
-func NewIntegrationControllerManager(client kubernetes.Interface, oscf *ClientFactory) ManagedServiceManagerInterface {
+func NewIntegrationControllerManager(client kubernetes.Interface, oscf *ClientFactory, cfg map[string]string) ManagedServiceManagerInterface {
 	return &integrationControllerManager{
 		k8sClient:       client,
 		osClientFactory: oscf,
+		cfg:             cfg,
 	}
 }
 
 func (icm *integrationControllerManager) Create(msn *integreatly.ManagedServiceNamespace) error {
 	ns := msn.Name
-	if err := icm.createRoleBinding(EnmasseNamespace, getEnmasseConfigMapRoleBinding(ns)); err != nil {
+	if err := icm.createRoleBinding(EnmasseNamespace, getEnmasseConfigMapRoleBinding(ns, icm.cfg)); err != nil {
 		return err
 	}
 
@@ -47,14 +49,14 @@ func (icm *integrationControllerManager) Update(msn *integreatly.ManagedServiceN
 		return err
 	}
 
-	d, err := dcClient.DeploymentConfigs(ns).Get(IntegrationControllerName, metav1.GetOptions{})
+	d, err := dcClient.DeploymentConfigs(ns).Get(icm.cfg["name"], metav1.GetOptions{})
 	if err != nil {
 		return errors.Wrap(err, "failed to create an openshift deployment config client")
 	}
 
-	c := getContainer(IntegrationControllerName, d)
+	c := getContainer(icm.cfg["name"], d)
 	if c != nil {
-		e := getEnvVar(IntegrationUserNamespacesEnvVarKey, c)
+		e := getEnvVar(icm.cfg["namespacesEnvVarKey"], c)
 		oldValues := filter(strings.Split(e.Value, ","), func(s string) bool {
 			// strings.Split can return an empty string if e.Value is empty.
 			return len(s) != 0
@@ -147,7 +149,7 @@ func getEnvVar(name string, c *corev1.Container) *corev1.EnvVar {
 
 func (icm *integrationControllerManager) createRoutesAndServicesRoleBindings(namespaces []string, managedServiceNamespace string) error {
 	for _, cns := range namespaces {
-		rb := getRoutesAndServicesRoleBinding(managedServiceNamespace)
+		rb := getRoutesAndServicesRoleBinding(managedServiceNamespace, icm.cfg)
 		if err := icm.createRoleBinding(cns, rb); err != nil {
 			return err
 		}
@@ -182,7 +184,7 @@ func (icm *integrationControllerManager) createIntegrationController(namespace s
 		return errors.Wrap(err, "failed to create an openshift deployment config client")
 	}
 
-	if _, err = dcClient.DeploymentConfigs(namespace).Create(integrationDeploymentConfig); err != nil {
+	if _, err = dcClient.DeploymentConfigs(namespace).Create(getIntegrationDeploymentConfig(icm.cfg)); err != nil {
 		return errors.Wrap(err, "failed to create deployment config for integration controller service")
 	}
 

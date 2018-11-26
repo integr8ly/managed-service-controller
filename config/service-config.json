@@ -1,0 +1,9 @@
+{
+  "integrationController": {
+    "name": "integration-controller",
+    "namespacesEnvVarKey": "USER_NAMESPACES",
+    "imageOrg": "quay.io/integreatly",
+    "imageTag": "dev",
+    "allowInsecure": "true"
+  }
+}

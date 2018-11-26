@@ -13,9 +13,9 @@ type ManagedServiceNamespaceHandler struct {
 	client clients.ManagedServiceNamespaceInterface
 }
 
-func NewManagedServiceNamespaceHandler(cfg *rest.Config) *ManagedServiceNamespaceHandler {
+func NewManagedServiceNamespaceHandler(cfg *rest.Config, sCfg map[string]map[string]string) *ManagedServiceNamespaceHandler {
 	return &ManagedServiceNamespaceHandler{
-		client: clients.NewManagedServiceNamespaceClient(cfg),
+		client: clients.NewManagedServiceNamespaceClient(cfg, sCfg),
 	}
 }
 

@@ -28,7 +28,7 @@ type ManagedServiceManagerInterface interface {
 	Update(*integreatly.ManagedServiceNamespace) error
 }
 
-func NewManagedServiceNamespaceClient(cfg *rest.Config) ManagedServiceNamespaceInterface {
+func NewManagedServiceNamespaceClient(cfg *rest.Config, sCfg map[string]map[string]string) ManagedServiceNamespaceInterface {
 	k8sClient := k8sclient.GetKubeClient()
 	osClient := NewClientFactory(cfg)
 	return &managedServiceNamespacesClient{
@@ -36,7 +36,7 @@ func NewManagedServiceNamespaceClient(cfg *rest.Config) ManagedServiceNamespaceI
 		osClient:  osClient,
 		managedServiceManagers: []ManagedServiceManagerInterface{
 			NewFuseOperatorManager(k8sClient, osClient),
-			NewIntegrationControllerManager(k8sClient, osClient),
+			NewIntegrationControllerManager(k8sClient, osClient, sCfg["integrationController"]),
 		},
 	}
 }
