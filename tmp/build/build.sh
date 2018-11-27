@@ -20,4 +20,4 @@ mkdir -p ${BIN_DIR}
 REPO_PATH="github.com/integr8ly/${PROJECT_NAME}"
 BUILD_PATH="${REPO_PATH}/cmd/${PROJECT_NAME}"
 echo "building "${PROJECT_NAME}"..."
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ${BIN_DIR}/${PROJECT_NAME} $BUILD_PATH
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 packr build -o ${BIN_DIR}/${PROJECT_NAME} $BUILD_PATH

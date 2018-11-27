@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/gobuffalo/packr/v2"
+	"github.com/gobuffalo/packr"
 	"github.com/integr8ly/managed-service-controller/pkg/handlers"
 	"github.com/operator-framework/operator-sdk/pkg/sdk"
 	"github.com/operator-framework/operator-sdk/pkg/util/k8sutil"
@@ -26,9 +26,9 @@ func main() {
 
 	sdk.ExposeMetricsPort()
 
-	config := packr.New("config", "./config")
+	config := packr.NewBox("../../config")
 	sCfgBytes, err := config.Find("service-config.json"); if err != nil {
-		panic(err)
+		logrus.Fatalf("failed to get managed service config: %v", err)
 	}
 
 	var sCfg map[string]map[string]string
