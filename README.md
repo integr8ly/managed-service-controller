@@ -10,6 +10,9 @@ These are heavy weight services that will be single tenant services, e.g. a serv
 ## Status
 POC
 
+## Dependencies
+When building the binary packr is used to externalise configuration. [Install packr](https://github.com/gobuffalo/packr#installation) before using the build commands.
+
 ## Cluster Setup
 
 #### Add ManagedServiceNamespace CRD
