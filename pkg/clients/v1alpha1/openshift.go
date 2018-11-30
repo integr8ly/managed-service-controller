@@ -19,6 +19,7 @@ type ClientFactory struct {
 func (c *ClientFactory) AuthClient() (*authv1.AuthorizationV1Client, error) {
 	return authv1.NewForConfig(c.cfg)
 }
+
 func (c *ClientFactory) UserClient() (*userv1.UserV1Client, error) {
 	return userv1.NewForConfig(c.cfg)
 }

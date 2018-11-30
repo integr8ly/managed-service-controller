@@ -1,25 +1,13 @@
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1beta1
-metadata:
-  name: managed-service-controller
-rules:
-- apiGroups:
-  - integreatly.org
-  resources:
-  - managedservicenamespaces
-  verbs:
-  - "*"
 ---
-
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
-  generateName: default-account-managed-service-controller-
+  generateName: managed-service-controller-sa-
   labels:
     for: managed-service-controller
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: managed-service-controller
   namespace: ${NAMESPACE}
 roleRef:
   kind: Role
@@ -27,35 +15,6 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 
 ---
-
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1beta1
-metadata:
-  name: managed-service-controller-admin
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - namespaces
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-- apiGroups:
-  - rbac.authorization.k8s.io
-  resources:
-  - rolebindings
-  verbs:
-  - create
-- apiGroups:
-  - user.openshift.io
-  resources:
-  - users
-  verbs:
-  - get
----
-
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
@@ -68,10 +27,10 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: managed-service-controller
   namespace: ${NAMESPACE}
----
 
+---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
@@ -84,5 +43,5 @@ roleRef:
   name: view
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: managed-service-controller
   namespace: ${NAMESPACE}

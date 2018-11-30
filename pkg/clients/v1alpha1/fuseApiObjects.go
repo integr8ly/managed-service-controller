@@ -8,11 +8,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func getFuseServiceAccount(name string) *corev1.ServiceAccount {
+func getFuseServiceAccount(name, namespace string) *corev1.ServiceAccount {
 	operatorName := name + "-operator"
 	return &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: operatorName,
+			Name:      operatorName,
+			Namespace: namespace,
 			Labels: map[string]string{
 				"app":                   name,
 				"syndesis.io/app":       name,
@@ -23,11 +24,12 @@ func getFuseServiceAccount(name string) *corev1.ServiceAccount {
 	}
 }
 
-func getFuseServiceRoleBinding(name string) *rbacv1beta1.RoleBinding {
+func getFuseServiceRoleBinding(name, namespace string) *rbacv1beta1.RoleBinding {
 	operatorName := name + "-operator"
 	return &rbacv1beta1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: operatorName + ":install",
+			Name:      operatorName + ":install",
+			Namespace: namespace,
 			Labels: map[string]string{
 				"app":                   name,
 				"syndesis.io/app":       name,

@@ -1,4 +1,4 @@
-# Required permissions to deploy Integration Controller
+
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
@@ -15,17 +15,18 @@ rules:
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
-  generateName: default-account-managed-service-controller-integration-update-
+  generateName: managed-service-controller-integration-update-
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: integration-update
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: managed-service-controller
   namespace: ${NAMESPACE}
 ---
 
+# Required permissions to deploy and manage Integration Controller
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
@@ -51,10 +52,26 @@ rules:
   - rolebindings
   verbs:
   - create
-  - deletecollection
+  - list
+  - delete
 ---
 
-# Integration controller permissions. managed-service-controller needs these permissions at the cluster level to be able to grant them to each controller.
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  generateName: managed-service-controller-integration-admin-
+subjects:
+- kind: ServiceAccount
+  name: managed-service-controller
+  namespace: ${NAMESPACE}
+roleRef:
+  kind: ClusterRole
+  name: managed-service-controller-integration-admin
+  apiGroup: rbac.authorization.k8s.io
+---
+
+# Integration controller service account permissions.
+# managed-service-controller needs these permissions at the cluster level to be able to grant them to each integration controller service account.
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
@@ -105,7 +122,7 @@ roleRef:
   name: integration-controller
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: managed-service-controller
   namespace: ${NAMESPACE}
 ---
 
@@ -119,7 +136,7 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: managed-service-controller
   namespace: ${NAMESPACE}
 ---
 
@@ -133,5 +150,5 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: managed-service-controller
   namespace: ${NAMESPACE}

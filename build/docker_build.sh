@@ -16,4 +16,4 @@ TAG=$3
 IMAGE=$DOCKERORG/$PROJECT_NAME:$TAG
 
 echo "building container ${IMAGE}..."
-docker build -t "${IMAGE}" -f tmp/build/Dockerfile .
+docker build -t "${IMAGE}" -f build/Dockerfile .

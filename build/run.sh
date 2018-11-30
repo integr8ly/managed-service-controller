@@ -16,7 +16,7 @@ fi;
 
 WATCH_NAMESPACE=$1
 PROJECT_NAME=$2
-BIN_DIR="$(pwd)/tmp/_output/bin"
+BIN_DIR="$(pwd)/build/_output/bin"
 
 echo "running "${PROJECT_NAME}"..."
 KUBERNETES_CONFIG=$HOME/.kube/config OPERATOR_NAME=${PROJECT_NAME} WATCH_NAMESPACE=$WATCH_NAMESPACE ${BIN_DIR}/${PROJECT_NAME}

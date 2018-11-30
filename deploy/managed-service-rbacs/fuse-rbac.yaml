@@ -1,5 +1,4 @@
-# Required permissions to deploy fuse operator
-
+# Required permissions to deploy and manage Integration Controller
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
@@ -35,10 +34,10 @@ rules:
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
-  generateName: default-account-managed-service-controller-fuse-admin-
+  generateName: managed-service-controller-fuse-admin-
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: managed-service-controller
   namespace: ${NAMESPACE}
 roleRef:
   kind: ClusterRole
@@ -46,7 +45,8 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 ---
 
-# syndesis permissions. managed-service-controller needs these permissions at the cluster level to be able to grant them to each operator.
+# syndesis service account permissions.
+# managed-service-controller needs these permissions at the cluster level to be able to grant them to each syndesis service account.
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
@@ -120,10 +120,10 @@ rules:
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
-  generateName: default-account-managed-service-controller-grant-fuse-perms-
+  generateName: managed-service-controller-grant-fuse-perms-
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: managed-service-controller
   namespace: ${NAMESPACE}
 roleRef:
   kind: ClusterRole
@@ -134,26 +134,26 @@ roleRef:
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
-  generateName: default-account-managed-service-controller-edit-
+  generateName: managed-service-controller-edit-
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: edit
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: managed-service-controller
   namespace: ${NAMESPACE}
 ---
 
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
-  generateName: default-account-managed-service-controller-view-
+  generateName: managed-service-controller-view-
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: view
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: managed-service-controller
   namespace: ${NAMESPACE}

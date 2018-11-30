@@ -4,19 +4,19 @@ PROJECT_NAME = managed-service-controller
 
 .phony: build_binary
 build_binary:
-	./tmp/build/build.sh $(PROJECT_NAME)
+	./build/build.sh $(PROJECT_NAME)
 
 .phony: run
 run:
-	./tmp/build/run.sh $(WATCH_NAMESPACE) $(PROJECT_NAME)
+	./build/run.sh $(WATCH_NAMESPACE) $(PROJECT_NAME)
 
 .phony: run_local
 run_local:
-	./tmp/build/run_local.sh $(WATCH_NAMESPACE) $(PROJECT_NAME)
+	./build/run_local.sh $(WATCH_NAMESPACE) $(PROJECT_NAME)
 
 .phony: build_image
 build_image: build_binary
-	./tmp/build/docker_build.sh $(DOCKERORG) $(PROJECT_NAME) $(TAG)
+	./build/docker_build.sh $(DOCKERORG) $(PROJECT_NAME) $(TAG)
 
 .phony: push
 push:
