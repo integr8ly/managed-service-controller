@@ -23,7 +23,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: managed-service-controller
-  namespace: ${NAMESPACE}
+  namespace: {NAMESPACE}
 ---
 
 # Required permissions to deploy and manage Integration Controller
@@ -63,7 +63,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: managed-service-controller
-  namespace: ${NAMESPACE}
+  namespace: {NAMESPACE}
 roleRef:
   kind: ClusterRole
   name: managed-service-controller-integration-admin
@@ -123,7 +123,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: managed-service-controller
-  namespace: ${NAMESPACE}
+  namespace: {NAMESPACE}
 ---
 
 kind: ClusterRoleBinding
@@ -137,7 +137,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: managed-service-controller
-  namespace: ${NAMESPACE}
+  namespace: {NAMESPACE}
 ---
 
 kind: ClusterRoleBinding
@@ -151,4 +151,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: managed-service-controller
-  namespace: ${NAMESPACE}
+  namespace: {NAMESPACE}
