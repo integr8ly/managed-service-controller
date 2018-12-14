@@ -11,11 +11,14 @@ These are heavy weight services that will be single tenant services, e.g. a serv
 POC
 
 ## Dependencies
-When building the binary packr is used to externalise configuration. [Install packr](https://github.com/gobuffalo/packr#installation) before using the build commands.
+__NOTE:__ This command should only be run once.
+```bash
+make setup/dep
+```
 
 ## Cluster Setup
 
-#### Add ManagedServiceNamespace CRD
+#### ManagedServiceNamespace CRD
 The Managed Service Controller reacts to a `ManagedServiceNamespace` custom resource with the following properties:
 
 ```yaml
@@ -28,48 +31,33 @@ properties:
       description: Names of the namespaces that will be allowed use the services created in ManagedServiceNamespace.
 ```
 
-```bash
-$ oc create -f ./deploy/crd.yaml
-```
-
 #### Managed Service Requirements
-The managed-service-controller currently installs the managed services/managed servie operators:
+The managed-service-controller currently installs the managed services/managed service operators:
 - [Fuse](https://github.com/syndesisio/syndesis/tree/master/install/operator)
 - [Integration controller](https://github.com/integr8ly/integration-controller)
 
 into a managed service namespace.
 
-Setup the required resources for those services.
+#### Deploy the managed services controller
 
 ```bash
-# RBACS
-$ oc create -f https://raw.githubusercontent.com/integr8ly/integration-controller/master/deploy/enmasse/enmasse-cluster-role.yaml
-$ oc create -f https://raw.githubusercontent.com/integr8ly/integration-controller/master/deploy/applications/route-services-viewer-cluster-role.yaml
+# login as cluster-admin
+$ oc login -u system:admin
 
-# Custom resource definitions
-$ oc create -f https://raw.githubusercontent.com/syndesisio/syndesis/master/install/operator/deploy/syndesis-crd.yml
-$ oc create -f https://raw.githubusercontent.com/integr8ly/integration-controller/master/deploy/crd.yaml
-
-# Fuse Image Streams
-$ oc create -f https://raw.githubusercontent.com/syndesisio/fuse-online-install/1.4.8/resources/fuse-online-image-streams.yml -n openshift
-$ oc create -f ./deploy/fuse-image-stream.yaml -n openshift
+# Setup the cluster with the required CRDs, setup, and resources.
+make cluster/prepare
 ```
+__NOTE:__ `make cluster/clean` will remove the required CRDs, setup, and resources.
 
-```bash
-# Create enmasse namespace
-$ oc create namespace enmasse
-```
-
-#### Deploy the manged services controller
 ```bash
 $ oc new-project <manged-services-controller-namespace>
-$ oc create -f ./deploy/rbac.yaml
-$ oc create -f ./deploy/operator.yaml
+$ make cluster/deploy PROJECT_NAME=<manged-services-controller-namespace>
 ```
+__NOTE:__ `make cluster/deploy/remove PROJECT_NAME=<manged-services-controller-namespace>` will remove the managed-service-controller deployment.
 
 ## Deploy a Custom Resource
 
-There is an example resource in `deploy/cr.yaml` with the following spec:
+There is an example resource in `./deploy/crds/integreatly_v1alpha1_managedservicenamespace_cr.yaml` with the following spec:
 
 ```yaml
 spec:
@@ -88,10 +76,21 @@ metadata:
 
 __NOTE:__ Ensure the User and any namespaces in the `consumerNamespaces` array exist in the cluster.
 
+```bash
+$ oc create user admin
+$ oc create namespace consumer1
+$ oc create namespace consumer2
+```
+
 Create the custom resource:
 ```bash
-$ oc create -f ./deploy/cr.yaml
+$ oc create -f ./deploy/crds/integreatly_v1alpha1_managedservicenamespace_cr.yaml -n <manged-services-controller-namespace>
 ```
 
 Based on the above custom resource the Managed Service Controller will create a new namespace called `managed-services-project` and populate the namespace with managed services operators/controllers.
 A user can then deploy these managed services from any of the namespaces in the `consumerNamespaces` list
+
+Delete the custom resource to remove the managed service namespace: `managed-services-project`
+```bash
+$ oc delete -f ./deploy/crds/integreatly_v1alpha1_managedservicenamespace_cr.yaml -n <manged-services-controller-namespace>
+```

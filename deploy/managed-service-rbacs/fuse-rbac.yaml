@@ -38,7 +38,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: managed-service-controller
-  namespace: ${NAMESPACE}
+  namespace: {NAMESPACE}
 roleRef:
   kind: ClusterRole
   name: managed-service-controller-fuse-perms
@@ -124,7 +124,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: managed-service-controller
-  namespace: ${NAMESPACE}
+  namespace: {NAMESPACE}
 roleRef:
   kind: ClusterRole
   name: syndesis-operator
@@ -142,7 +142,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: managed-service-controller
-  namespace: ${NAMESPACE}
+  namespace: {NAMESPACE}
 ---
 
 kind: ClusterRoleBinding
@@ -156,4 +156,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: managed-service-controller
-  namespace: ${NAMESPACE}
+  namespace: {NAMESPACE}
